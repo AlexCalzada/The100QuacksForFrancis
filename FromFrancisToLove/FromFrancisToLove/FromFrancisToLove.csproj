@@ -5,7 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="filters\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Formatters\" />
+    <Folder Include="Attributes\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
