@@ -12,6 +12,7 @@ using MySql.Data.MySqlClient;
 using MySql.Web.Common;
 using FromFrancisToLove.Models;
 using Microsoft.EntityFrameworkCore;
+using FromFrancisToLove.Data;
 
 namespace FromFrancisToLove
 {
