@@ -3,17 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using FromFrancisToLove.Models;
+using FromFrancisToLove.Data;
 
 namespace FromFrancisToLove.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+        private readonly HouseOfCards_Context _context;
+
+        public ValuesController(HouseOfCards_Context context)
+        {
+            _context = context;
+        }
+
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public List<Productos> Get()
         {
-            return new string[] { "value1", "value2" };
+            return _context.Producto.ToList();
         }
 
         // GET api/values/5
