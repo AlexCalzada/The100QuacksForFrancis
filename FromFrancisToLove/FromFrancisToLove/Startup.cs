@@ -8,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MySql.Data.MySqlClient;
-using MySql.Web.Common;
 using FromFrancisToLove.Models;
 using Microsoft.EntityFrameworkCore;
 using FromFrancisToLove.Data;
