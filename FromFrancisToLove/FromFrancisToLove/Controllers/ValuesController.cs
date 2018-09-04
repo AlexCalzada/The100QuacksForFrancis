@@ -49,14 +49,14 @@ namespace FromFrancisToLove.Controllers
         [HttpGet("0")]
         public IActionResult GetBD()
         {
-            return Json( _context.Conexion_ConfigItem.ToList());
+            return Json( _context.Conexion_Config.ToList());
         }
 
         [HttpGet("1",Name ="Obtener_Conexion_Config")]
         public IActionResult GetById(int id)
         {
 
-            var item = _context.Conexion_ConfigItem.Find(id);
+            var item = _context.Conexion_Config.Find(id);
             if (item == null)
             {
                 return NotFound();
