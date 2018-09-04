@@ -23,7 +23,6 @@ namespace FromFrancisToLove.Controllers
 
         // GET api/values
         [HttpGet]
-  
         public IActionResult Get()
         {
             try
