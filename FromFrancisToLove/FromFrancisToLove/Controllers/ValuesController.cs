@@ -79,7 +79,7 @@ namespace FromFrancisToLove.Controllers
             {
                 return Ok($"{ex}");
             }
-            return Ok(item);
+       //     return Ok(item);
         }
 
         // GET api/values/5
