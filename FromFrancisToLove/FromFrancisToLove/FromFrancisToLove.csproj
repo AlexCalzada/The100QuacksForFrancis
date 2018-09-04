@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Filters\" />
     <Folder Include="Attributes\" />
+    <Folder Include="Filters\" />
     <Folder Include="Middlewares\Extensions\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>

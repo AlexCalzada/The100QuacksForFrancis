@@ -23,17 +23,18 @@ namespace FromFrancisToLove.Controllers
 
         // GET api/values
         [HttpGet]
+  
         public IActionResult Get()
         {
-
             try
             {
                 ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, "http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx");
+                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, Credentials.Url);
 
                 client.ClientCredentials.UserName.UserName = Credentials.Usr;
                 client.ClientCredentials.UserName.Password = Credentials.Psw;
                 client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+
                 var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
 
 
@@ -43,6 +44,42 @@ namespace FromFrancisToLove.Controllers
             {
                 return Ok($"{ex}");
             }
+        }
+
+        [HttpGet("0")]
+        public IActionResult GetBD()
+        {
+            return Json( _context.Conexion_ConfigItem.ToList());
+        }
+
+        [HttpGet("1",Name ="Obtener_Conexion_Config")]
+        public IActionResult GetById(int id)
+        {
+
+            var item = _context.Conexion_ConfigItem.Find(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
+                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, item.Url);
+
+                client.ClientCredentials.UserName.UserName = item.Usr;
+                client.ClientCredentials.UserName.Password = item.Pwd;
+                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+
+                var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
+
+
+                return Ok(saldo);
+            }
+            catch (Exception ex)
+            {
+                return Ok($"{ex}");
+            }
+            return Ok(item);
         }
 
         // GET api/values/5
