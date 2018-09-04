@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace FromFrancisToLove.Models
 {
+    [Table("")]
     public class Tienda_Config
     {
-
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TiendaId { get; set; }

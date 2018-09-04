@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FromFrancisToLove.Models
 {
-    [Table("CATALOGO_PRODUCTO", Schema = "HouseOfCards")]
+    [Table("Catalogo_Producto", Schema = "HouseOfCards")]
     public class Catalogos_Producto
     {
         [Key]
@@ -18,7 +18,7 @@ namespace FromFrancisToLove.Models
 
         public int ConfigId { get; set; }
 
-        [ForeignKey("ConfigId")]
-        public virtual Conexion_Config User { get; set; }
+        //[ForeignKey("ConfigId")]
+        //public virtual Conexion_Config User { get; set; }
     }
 }

@@ -28,7 +28,7 @@ namespace FromFrancisToLove.Controllers
             try
             {
                 ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, CredentialsTadenor.);
+                ServicePXSoapClient client = new ServicePXSoapClient(endpoint);
 
                 client.ClientCredentials.UserName.UserName = CredentialsTadenor.Usr;
                 client.ClientCredentials.UserName.Password = CredentialsTadenor.Psw;

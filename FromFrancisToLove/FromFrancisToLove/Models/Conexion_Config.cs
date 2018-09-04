@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FromFrancisToLove.Models
 {
-    [Table("CONEXION_CONFIG", Schema = "HouseOfCards")]
+    [Table("Conexion_Config", Schema = "HouseOfCards")]
     public class Conexion_Config
     {
         [Key]
