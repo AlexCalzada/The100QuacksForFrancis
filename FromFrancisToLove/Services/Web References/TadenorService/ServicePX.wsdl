@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://www.pagoexpress.com.mx/ServicePX" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://www.pagoexpress.com.mx/ServicePX" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://www.pagoexpress.com.mx/ServicePX">
+      <s:element name="StatusPTVAnd">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="StatusPTVAndResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="StatusPTVAndResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConfInicialAnd">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConfInicialAndResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ConfInicialAndResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SaldoDisponible">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="lGrupo" type="s:long" />
+            <s:element minOccurs="1" maxOccurs="1" name="lCadena" type="s:long" />
+            <s:element minOccurs="1" maxOccurs="1" name="lTienda" type="s:long" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="SaldoDisponibleResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" name="SaldoDisponibleResult" type="s:double" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReloadClass">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReloadClassResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getReloadClassResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReloadData">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReloadDataResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getReloadDataResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReverseClass">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getReverseClassResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getReverseClassResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getQueryClass">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getQueryClassResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getQueryClassResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getQueryDatClass">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sXML" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getQueryDatClassResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getQueryDatClassResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="string" nillable="true" type="s:string" />
+      <s:element name="double" type="s:double" />
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="StatusPTVAndSoapIn">
+    <wsdl:part name="parameters" element="tns:StatusPTVAnd" />
+  </wsdl:message>
+  <wsdl:message name="StatusPTVAndSoapOut">
+    <wsdl:part name="parameters" element="tns:StatusPTVAndResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndSoapIn">
+    <wsdl:part name="parameters" element="tns:ConfInicialAnd" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndSoapOut">
+    <wsdl:part name="parameters" element="tns:ConfInicialAndResponse" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleSoapIn">
+    <wsdl:part name="parameters" element="tns:SaldoDisponible" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleSoapOut">
+    <wsdl:part name="parameters" element="tns:SaldoDisponibleResponse" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassSoapIn">
+    <wsdl:part name="parameters" element="tns:getReloadClass" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassSoapOut">
+    <wsdl:part name="parameters" element="tns:getReloadClassResponse" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataSoapIn">
+    <wsdl:part name="parameters" element="tns:getReloadData" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataSoapOut">
+    <wsdl:part name="parameters" element="tns:getReloadDataResponse" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassSoapIn">
+    <wsdl:part name="parameters" element="tns:getReverseClass" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassSoapOut">
+    <wsdl:part name="parameters" element="tns:getReverseClassResponse" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassSoapIn">
+    <wsdl:part name="parameters" element="tns:getQueryClass" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassSoapOut">
+    <wsdl:part name="parameters" element="tns:getQueryClassResponse" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassSoapIn">
+    <wsdl:part name="parameters" element="tns:getQueryDatClass" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassSoapOut">
+    <wsdl:part name="parameters" element="tns:getQueryDatClassResponse" />
+  </wsdl:message>
+  <wsdl:message name="StatusPTVAndHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="StatusPTVAndHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleHttpGetIn">
+    <wsdl:part name="lGrupo" type="s:string" />
+    <wsdl:part name="lCadena" type="s:string" />
+    <wsdl:part name="lTienda" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleHttpGetOut">
+    <wsdl:part name="Body" element="tns:double" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassHttpGetIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassHttpGetOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="StatusPTVAndHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="StatusPTVAndHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="ConfInicialAndHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleHttpPostIn">
+    <wsdl:part name="lGrupo" type="s:string" />
+    <wsdl:part name="lCadena" type="s:string" />
+    <wsdl:part name="lTienda" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="SaldoDisponibleHttpPostOut">
+    <wsdl:part name="Body" element="tns:double" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadClassHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReloadDataHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getReverseClassHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryClassHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassHttpPostIn">
+    <wsdl:part name="sXML" type="s:string" />
+  </wsdl:message>
+  <wsdl:message name="getQueryDatClassHttpPostOut">
+    <wsdl:part name="Body" element="tns:string" />
+  </wsdl:message>
+  <wsdl:portType name="ServicePXSoap">
+    <wsdl:operation name="StatusPTVAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Configuracion Inicial para app Android</wsdl:documentation>
+      <wsdl:input message="tns:StatusPTVAndSoapIn" />
+      <wsdl:output message="tns:StatusPTVAndSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Status de punto de venta App Android</wsdl:documentation>
+      <wsdl:input message="tns:ConfInicialAndSoapIn" />
+      <wsdl:output message="tns:ConfInicialAndSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Saldo Disponible</wsdl:documentation>
+      <wsdl:input message="tns:SaldoDisponibleSoapIn" />
+      <wsdl:output message="tns:SaldoDisponibleSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReloadClassSoapIn" />
+      <wsdl:output message="tns:getReloadClassSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getReloadDataSoapIn" />
+      <wsdl:output message="tns:getReloadDataSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Reverso Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReverseClassSoapIn" />
+      <wsdl:output message="tns:getReverseClassSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getQueryClassSoapIn" />
+      <wsdl:output message="tns:getQueryClassSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getQueryDatClassSoapIn" />
+      <wsdl:output message="tns:getQueryDatClassSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="ServicePXHttpGet">
+    <wsdl:operation name="StatusPTVAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Configuracion Inicial para app Android</wsdl:documentation>
+      <wsdl:input message="tns:StatusPTVAndHttpGetIn" />
+      <wsdl:output message="tns:StatusPTVAndHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Status de punto de venta App Android</wsdl:documentation>
+      <wsdl:input message="tns:ConfInicialAndHttpGetIn" />
+      <wsdl:output message="tns:ConfInicialAndHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Saldo Disponible</wsdl:documentation>
+      <wsdl:input message="tns:SaldoDisponibleHttpGetIn" />
+      <wsdl:output message="tns:SaldoDisponibleHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReloadClassHttpGetIn" />
+      <wsdl:output message="tns:getReloadClassHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getReloadDataHttpGetIn" />
+      <wsdl:output message="tns:getReloadDataHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Reverso Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReverseClassHttpGetIn" />
+      <wsdl:output message="tns:getReverseClassHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getQueryClassHttpGetIn" />
+      <wsdl:output message="tns:getQueryClassHttpGetOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getQueryDatClassHttpGetIn" />
+      <wsdl:output message="tns:getQueryDatClassHttpGetOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="ServicePXHttpPost">
+    <wsdl:operation name="StatusPTVAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Configuracion Inicial para app Android</wsdl:documentation>
+      <wsdl:input message="tns:StatusPTVAndHttpPostIn" />
+      <wsdl:output message="tns:StatusPTVAndHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Status de punto de venta App Android</wsdl:documentation>
+      <wsdl:input message="tns:ConfInicialAndHttpPostIn" />
+      <wsdl:output message="tns:ConfInicialAndHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Saldo Disponible</wsdl:documentation>
+      <wsdl:input message="tns:SaldoDisponibleHttpPostIn" />
+      <wsdl:output message="tns:SaldoDisponibleHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReloadClassHttpPostIn" />
+      <wsdl:output message="tns:getReloadClassHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Recarga Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getReloadDataHttpPostIn" />
+      <wsdl:output message="tns:getReloadDataHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Reverso Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getReverseClassHttpPostIn" />
+      <wsdl:output message="tns:getReverseClassHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Tiempo Aire</wsdl:documentation>
+      <wsdl:input message="tns:getQueryClassHttpPostIn" />
+      <wsdl:output message="tns:getQueryClassHttpPostOut" />
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Consulta de Paquete de Datos</wsdl:documentation>
+      <wsdl:input message="tns:getQueryDatClassHttpPostIn" />
+      <wsdl:output message="tns:getQueryDatClassHttpPostOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServicePXSoap" type="tns:ServicePXSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="StatusPTVAnd">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/StatusPTVAnd" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/ConfInicialAnd" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReloadClass" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReloadData" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReverseClass" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getQueryClass" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <soap:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getQueryDatClass" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="ServicePXSoap12" type="tns:ServicePXSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="StatusPTVAnd">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/StatusPTVAnd" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/ConfInicialAnd" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReloadClass" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReloadData" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getReverseClass" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getQueryClass" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <soap12:operation soapAction="http://www.pagoexpress.com.mx/ServicePX/getQueryDatClass" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="ServicePXHttpGet" type="tns:ServicePXHttpGet">
+    <http:binding verb="GET" />
+    <wsdl:operation name="StatusPTVAnd">
+      <http:operation location="/StatusPTVAnd" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <http:operation location="/ConfInicialAnd" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <http:operation location="/SaldoDisponible" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <http:operation location="/getReloadClass" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <http:operation location="/getReloadData" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <http:operation location="/getReverseClass" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <http:operation location="/getQueryClass" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <http:operation location="/getQueryDatClass" />
+      <wsdl:input>
+        <http:urlEncoded />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="ServicePXHttpPost" type="tns:ServicePXHttpPost">
+    <http:binding verb="POST" />
+    <wsdl:operation name="StatusPTVAnd">
+      <http:operation location="/StatusPTVAnd" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConfInicialAnd">
+      <http:operation location="/ConfInicialAnd" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SaldoDisponible">
+      <http:operation location="/SaldoDisponible" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadClass">
+      <http:operation location="/getReloadClass" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReloadData">
+      <http:operation location="/getReloadData" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getReverseClass">
+      <http:operation location="/getReverseClass" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryClass">
+      <http:operation location="/getQueryClass" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getQueryDatClass">
+      <http:operation location="/getQueryDatClass" />
+      <wsdl:input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </wsdl:input>
+      <wsdl:output>
+        <mime:mimeXml part="Body" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ServicePX">
+    <wsdl:port name="ServicePXSoap" binding="tns:ServicePXSoap">
+      <soap:address location="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" />
+    </wsdl:port>
+    <wsdl:port name="ServicePXSoap12" binding="tns:ServicePXSoap12">
+      <soap12:address location="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" />
+    </wsdl:port>
+    <wsdl:port name="ServicePXHttpGet" binding="tns:ServicePXHttpGet">
+      <http:address location="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" />
+    </wsdl:port>
+    <wsdl:port name="ServicePXHttpPost" binding="tns:ServicePXHttpPost">
+      <http:address location="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

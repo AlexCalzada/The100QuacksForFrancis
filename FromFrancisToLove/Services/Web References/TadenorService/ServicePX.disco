@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<discovery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/disco/">
+  <contractRef ref="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx?wsdl" docRef="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" xmlns="http://schemas.xmlsoap.org/disco/scl/" />
+  <soap address="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" xmlns:q1="http://www.pagoexpress.com.mx/ServicePX" binding="q1:ServicePXSoap" xmlns="http://schemas.xmlsoap.org/disco/soap/" />
+  <soap address="http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx" xmlns:q2="http://www.pagoexpress.com.mx/ServicePX" binding="q2:ServicePXSoap12" xmlns="http://schemas.xmlsoap.org/disco/soap/" />
+</discovery>

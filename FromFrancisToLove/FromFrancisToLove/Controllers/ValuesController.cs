@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FromFrancisToLove.Models;
 using FromFrancisToLove.Data;
+using FromFrancisToLove.Connected_Services.Tadenor;
+using Tadenor;
+
 
 namespace FromFrancisToLove.Controllers
 {
@@ -20,9 +23,26 @@ namespace FromFrancisToLove.Controllers
 
         // GET api/values
         [HttpGet]
-        public List<Productos> Get()
+        public IActionResult Get()
         {
-            return _context.Producto.ToList();
+
+            try
+            {
+                ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
+                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, "http://tndesarollo.com/WS_pruebasTN/ServicePX.asmx");
+
+                client.ClientCredentials.UserName.UserName = Credentials.Usr;
+                client.ClientCredentials.UserName.Password = Credentials.Psw;
+                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+                var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
+
+
+                return Ok(saldo);
+            }
+            catch (Exception ex)
+            {
+                return Ok($"{ex}");
+            }
         }
 
         // GET api/values/5
