@@ -52,7 +52,7 @@ namespace FromFrancisToLove.Controllers
             return Json( _context.Conexion_Config.ToList());
         }
 
-        [HttpGet("1",Name ="Obtener_Conexion_Config")]
+        [HttpGet("1")]
         public IActionResult GetById(int id)
         {
 
@@ -61,8 +61,7 @@ namespace FromFrancisToLove.Controllers
             {
                 return NotFound();
             }
-            try
-            {
+           
                 ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
                 ServicePXSoapClient client = new ServicePXSoapClient(endpoint, item.Url);
 
@@ -74,12 +73,8 @@ namespace FromFrancisToLove.Controllers
 
 
                 return Ok(saldo);
-            }
-            catch (Exception ex)
-            {
-                return Ok($"{ex}");
-            }
-       //     return Ok(item);
+            
+            
         }
 
         // GET api/values/5
