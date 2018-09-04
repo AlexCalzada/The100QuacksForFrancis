@@ -13,7 +13,7 @@ namespace FromFrancisToLove.Controllers
     public class CatalogoProductosController : Controller
     {
         private readonly HouseOfCards_Context _context;
-        //
+        
         public CatalogoProductosController(HouseOfCards_Context context)
         {
             _context = context;
