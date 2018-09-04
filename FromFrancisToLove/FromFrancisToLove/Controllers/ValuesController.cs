@@ -29,10 +29,10 @@ namespace FromFrancisToLove.Controllers
             try
             {
                 ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, Credentials.Url);
+                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, CredentialsTadenor.);
 
-                client.ClientCredentials.UserName.UserName = Credentials.Usr;
-                client.ClientCredentials.UserName.Password = Credentials.Psw;
+                client.ClientCredentials.UserName.UserName = CredentialsTadenor.Usr;
+                client.ClientCredentials.UserName.Password = CredentialsTadenor.Psw;
                 client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
 
                 var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
@@ -49,14 +49,14 @@ namespace FromFrancisToLove.Controllers
         [HttpGet("0")]
         public IActionResult GetBD()
         {
-            return Json( _context.Conexion_ConfigItem.ToList());
+            return Json( _context.conexion_Configs.ToList());
         }
 
         [HttpGet("1",Name ="Obtener_Conexion_Config")]
         public IActionResult GetById(int id)
         {
 
-            var item = _context.Conexion_ConfigItem.Find(id);
+            var item = _context.conexion_Configs.Find(id);
             if (item == null)
             {
                 return NotFound();
@@ -79,7 +79,6 @@ namespace FromFrancisToLove.Controllers
             {
                 return Ok($"{ex}");
             }
-            return Ok(item);
         }
 
         // GET api/values/5

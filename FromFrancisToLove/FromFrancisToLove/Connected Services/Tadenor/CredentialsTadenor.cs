@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace FromFrancisToLove.Connected_Services.Tadenor
 {
-    public class Credentials
+    public class CredentialsTadenor
     {
         public static string Usr { get { return "Webtest"; } }
         public static string Psw { get { return "po49lhG3"; } }
