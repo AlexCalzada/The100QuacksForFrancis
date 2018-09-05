@@ -10,7 +10,7 @@ using FromFrancisToLove.Requests;
 using System.IO;
 using Tadenor;
 using Diestel;
-
+using System.Xml;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -45,7 +45,7 @@ namespace FromFrancisToLove.Controllers
                 campo[0].iLongitud = 4;
                 campo[0].iClase = 0;
                 campo[0].sValor = 60;
-                campo[0].bEncriptado = false;
+                campo[0].bEncriptado = true;
 
                 var response = client.InfoAsync(campo).Result;
 
@@ -71,36 +71,51 @@ namespace FromFrancisToLove.Controllers
         {
             try
             {
-                var RelReq = new ReloadRequest();
+                var RelReq = new ReloadData();
                 RelReq.ID_GRP = 7;
                 RelReq.ID_CHAIN = 1;
                 RelReq.ID_MERCHANT = 1;
                 RelReq.ID_POS = 1;
                 RelReq.DateTime = DateTime.Now.ToString();
-                RelReq.SKU = "8469760101006";
+                //RelReq.SKU = "8469760101006";
                 RelReq.PhoneNumber = "8661625268";
                 RelReq.TransNumber = 1020;
-                RelReq.ID_COUNTRY = 484;
-                RelReq.TC = 0;
+                RelReq.ID_Product = "SBH001";
+                //RelReq.ID_COUNTRY = 484;
+                //RelReq.TC = 0;
+                RelReq.Brand = "TELCEL";
+                RelReq.Instr1 = "MARCA *264";
+                RelReq.Instr2 = "VIGENCIA TIEMPO AIRE 30 DIAS";
+                RelReq.AutoNo = 0;
+                RelReq.ResponseCode = 00;
+                RelReq.DescripcionCode = "Reload Success";
+                RelReq.Monto = 1521;
 
-                var xml = new XmlSerializer(RelReq.GetType());
-                MemoryStream file = new MemoryStream();
-                xml.Serialize(file, RelReq);
+
+                XmlSerializer xmlSerializer = new XmlSerializer(RelReq.GetType());
+
+                StringWriter sw = new StringWriter();
+                XmlWriter writer = XmlWriter.Create(sw);
+                xmlSerializer.Serialize(writer, RelReq);
+                var xml = sw.ToString();
+
                 
                 ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
 
                 client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
                 client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
+                
                 client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
 
-                var recarga = client.getReloadClassAsync(xml.ToString());
+                //var x = xml.ToString();
+
+                var recarga = client.getReloadDataAsync(xml.ToString());
 
                 return Ok(recarga.Result);
             }
             catch (Exception ex)
             {
-
-                return NotFound($"{ex}");
+                return BadRequest($"{ex}");
             }
         }
         
