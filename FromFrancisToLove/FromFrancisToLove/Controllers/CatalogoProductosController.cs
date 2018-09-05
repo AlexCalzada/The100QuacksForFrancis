@@ -9,6 +9,8 @@ using System.Xml.Serialization;
 using FromFrancisToLove.Requests;
 using System.IO;
 using Tadenor;
+using Diestel;
+
 
 namespace FromFrancisToLove.Controllers
 {
@@ -27,7 +29,33 @@ namespace FromFrancisToLove.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok();
+            try
+            {
+                PxUniversalSoapClient client = new PxUniversalSoapClient(PxUniversalSoapClient.EndpointConfiguration.PxUniversalSoap);
+                client.ClientCredentials.UserName.UserName = Connected_Services.Diestel.CredentialsDiestel.Usr;
+                client.ClientCredentials.UserName.Password = Connected_Services.Diestel.CredentialsDiestel.Psw;
+                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+
+                var campo = new cCampo[1];
+
+                campo[0] = new cCampo();
+
+                campo[0].sCampo = "CODIGORESPUESTA";
+                campo[0].iTipo = eTipo.NE;
+                campo[0].iLongitud = 4;
+                campo[0].iClase = 0;
+                campo[0].sValor = 60;
+                campo[0].bEncriptado = false;
+
+                var response = client.InfoAsync(campo).Result;
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+
+                return NotFound(ex);
+            }
         }
 
         // GET: api/CatalogoProductos/5
@@ -41,31 +69,39 @@ namespace FromFrancisToLove.Controllers
         [HttpPost]
         public IActionResult Post()
         {
-            var RelReq = new ReloadRequest();
-            RelReq.ID_GRP = 7;
-            RelReq.ID_CHAIN = 1;
-            RelReq.ID_MERCHANT = 1;
-            RelReq.ID_POS = 1;
-            RelReq.DateTime = DateTime.Now;
-            RelReq.SKU = "8469760101006";
-            RelReq.PhoneNumber = 8661625268;
-            RelReq.TransNumber = 1020;
-            RelReq.TC = 4;
+            try
+            {
+                var RelReq = new ReloadRequest();
+                RelReq.ID_GRP = 7;
+                RelReq.ID_CHAIN = 1;
+                RelReq.ID_MERCHANT = 1;
+                RelReq.ID_POS = 1;
+                RelReq.DateTime = DateTime.Now.ToString();
+                RelReq.SKU = "8469760101006";
+                RelReq.PhoneNumber = "8661625268";
+                RelReq.TransNumber = 1020;
+                RelReq.ID_COUNTRY = 484;
+                RelReq.TC = 0;
 
-            var xml = new XmlSerializer(RelReq.GetType());
-            MemoryStream file = new MemoryStream();
-            xml.Serialize(file, RelReq);
+                var xml = new XmlSerializer(RelReq.GetType());
+                MemoryStream file = new MemoryStream();
+                xml.Serialize(file, RelReq);
+                
+                ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
 
-            ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-            ServicePXSoapClient client = new ServicePXSoapClient(endpoint);
+                client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
+                client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
+                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
 
-            client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
-            client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
-            client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+                var recarga = client.getReloadClassAsync(xml.ToString());
 
-            var recarga = client.getReloadClassAsync(file.ToString());
+                return Ok(recarga.Result);
+            }
+            catch (Exception ex)
+            {
 
-            return Ok($"{recarga.Result}");
+                return NotFound($"{ex}");
+            }
         }
         
         // PUT: api/CatalogoProductos/5
