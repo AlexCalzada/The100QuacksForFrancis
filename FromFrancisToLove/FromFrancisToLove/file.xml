@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ReloadRequest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ID_GRP>7</ID_GRP>
+  <ID_CHAIN>1</ID_CHAIN>
+  <ID_MERCHANT>1</ID_MERCHANT>
+  <ID_POS>1</ID_POS>
+  <DateTime>2018-09-04T21:08:36.3207088-05:00</DateTime>
+  <SKU>8469760101006</SKU>
+  <PhoneNumber>8661625268</PhoneNumber>
+  <TransNumber>1020</TransNumber>
+  <TC>0</TC>
+</ReloadRequest>

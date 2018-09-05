@@ -5,10 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using FromFrancisToLove.Data;
+using System.Xml.Serialization;
+using FromFrancisToLove.Requests;
+using System.IO;
+using Tadenor;
 
 namespace FromFrancisToLove.Controllers
 {
-    [Produces("application/json")]
+    //[Produces("application/xml")]
     [Route("api/CatalogoProductos")]
     public class CatalogoProductosController : Controller
     {
@@ -23,7 +27,7 @@ namespace FromFrancisToLove.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_context.catalogos_Productos.ToList());
+            return Ok();
         }
 
         // GET: api/CatalogoProductos/5
@@ -35,8 +39,33 @@ namespace FromFrancisToLove.Controllers
         
         // POST: api/CatalogoProductos
         [HttpPost]
-        public void Post([FromBody]string value)
+        public IActionResult Post()
         {
+            var RelReq = new ReloadRequest();
+            RelReq.ID_GRP = 7;
+            RelReq.ID_CHAIN = 1;
+            RelReq.ID_MERCHANT = 1;
+            RelReq.ID_POS = 1;
+            RelReq.DateTime = DateTime.Now;
+            RelReq.SKU = "8469760101006";
+            RelReq.PhoneNumber = 8661625268;
+            RelReq.TransNumber = 1020;
+            RelReq.TC = 4;
+
+            var xml = new XmlSerializer(RelReq.GetType());
+            MemoryStream file = new MemoryStream();
+            xml.Serialize(file, RelReq);
+
+            ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
+            ServicePXSoapClient client = new ServicePXSoapClient(endpoint);
+
+            client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
+            client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
+            client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+
+            var recarga = client.getReloadClassAsync(file.ToString());
+
+            return Ok($"{recarga.Result}");
         }
         
         // PUT: api/CatalogoProductos/5
