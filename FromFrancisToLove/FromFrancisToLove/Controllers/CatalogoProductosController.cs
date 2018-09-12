@@ -66,7 +66,7 @@ namespace FromFrancisToLove.Controllers
         }
         
         // POST: api/CatalogoProductos
-        [HttpPost]
+        [HttpPost("1")]
         public IActionResult Post()
         {
             try

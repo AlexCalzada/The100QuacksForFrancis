@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using FromFrancisToLove.Models;
 using FromFrancisToLove.Data;
 using FromFrancisToLove.Connected_Services.Tadenor;
 using Tadenor;
 using System.Net;
-using System.Text;
 using System.IO;
 using System.Xml;
+using System.Xml.Serialization;
+using FromFrancisToLove.Requests;
+using System.Text;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -21,12 +20,12 @@ namespace FromFrancisToLove.Controllers
 
         public ValuesController(HouseOfCards_Context context)
         {
+           
             _context = context;
         }
 
         // GET api/values
         [HttpGet]
-  
         public IActionResult Get()
         {
             try
@@ -52,7 +51,7 @@ namespace FromFrancisToLove.Controllers
         [HttpGet("0")]
         public IActionResult GetBD()
         {
-            return Json( _context.conexion_Configs.ToList());
+            return Json(_context.conexion_Configs.ToList());
         }
 
         [HttpGet("1")]
@@ -65,52 +64,29 @@ namespace FromFrancisToLove.Controllers
             {
                 return NotFound();
             }
-           
-                ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-                ServicePXSoapClient client = new ServicePXSoapClient(endpoint, item.Url);
 
-                client.ClientCredentials.UserName.UserName = item.Usr;
-                client.ClientCredentials.UserName.Password = item.Pwd;
-                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
- 
-                var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
-                return Ok(saldo);
+            ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
+            ServicePXSoapClient client = new ServicePXSoapClient(endpoint, item.Url);
+
+            client.ClientCredentials.UserName.UserName = item.Usr;
+            client.ClientCredentials.UserName.Password = item.Pwd;
+            client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+
+            var saldo = client.SaldoDisponibleAsync(7, 1, 1).Result;
+            return Ok(saldo);
         }
 
         // GET api/values/5
         [HttpGet("2")]
-        public string Get(int id)
+        public string Getxml(int id)
         {
             var item = _context.conexion_Configs.Find(2);
 
-            //HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(item.Url);
-            //webRequest.Credentials = new System.Net.NetworkCredential(item.Usr, item.Pwd);
-            //webRequest.Headers.Add("SOAPAction", item.Url+"/SaldoDisponible");
-            //webRequest.ContentType = "text/xml;charset=\"utf-8\"";
-            //webRequest.Accept = "text/xml";
-            //webRequest.Method = "POST";
-
-
-
-            //IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-
-
-            //return null;}
-
-     
-
             XmlDocument soapEnvelopeXml = CreateSoapEnvelope();
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible",item.Usr,item.Pwd);
+            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible", item.Usr, item.Pwd);
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-
-            // begin async call to web request.
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-
-            // suspend this thread until call is complete. You might want to
-            // do something usefull here like update your UI.
             asyncResult.AsyncWaitHandle.WaitOne();
-
-            // get the response from the completed web request.
             string soapResult;
             using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
             {
@@ -119,17 +95,72 @@ namespace FromFrancisToLove.Controllers
                     soapResult = rd.ReadToEnd();
                 }
                 return soapResult;
-                
+
             }
 
         }
+
+
+        [HttpGet("3")]
+        public IActionResult Post(/*int idGroup, int idChain, int idMerchant,int idPos*/)
+        {
+
+            Envelope_SD x = new Envelope_SD
+            {
+                body = new Body_SD
+                {
+                    SaldoDisponible = new Campos_SD
+                    {
+                        lGrupo = 7,
+                        lCadena = 1,
+                        lTienda = 1,
+                    }
+                }
+            };
+
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add("soap", "http://schemas.xmlsoap.org/soap/envelope/");
+            ns.Add("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+            ns.Add("xsd", "http://www.w3.org/2001/XMLSchema");
+
+            XmlSerializer xmlPrueba = new XmlSerializer(typeof(Envelope_SD));
+
+            var settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.OmitXmlDeclaration = true;
+            StringWriter sw = new StringWriter();
+            XmlWriter writer = XmlWriter.Create(sw,settings);
+            xmlPrueba.Serialize(writer, x, ns);
+            
+            var xml = sw.ToString();
+
+
+            var item = _context.conexion_Configs.Find(2);
+            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible", item.Usr, item.Pwd);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope2(xml);
+
+            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            asyncResult.AsyncWaitHandle.WaitOne();
+            string soapResult;
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            {
+                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    soapResult = rd.ReadToEnd();
+                }
+                return Content(soapResult);
+            }
+        }
+
+
         private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
         {
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Credentials = new System.Net.NetworkCredential(Usr,Pwd);
+            webRequest.Credentials = new System.Net.NetworkCredential(Usr, Pwd);
             webRequest.Headers.Add("SOAPAction", action);
             webRequest.ContentType = "text/xml;charset=\"utf-8\"";
-            
+
             webRequest.Method = "POST";
             return webRequest;
         }
@@ -137,8 +168,17 @@ namespace FromFrancisToLove.Controllers
         private static XmlDocument CreateSoapEnvelope()
         {
             XmlDocument soapEnvelopeDocument = new XmlDocument();
-            soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
+          soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
+            
         }
+
+        private static XmlDocument CreateSoapEnvelope2(string xml)
+        {
+            XmlDocument soapEnvelopeDocument = new XmlDocument();
+            soapEnvelopeDocument.LoadXml(xml);
+            return soapEnvelopeDocument;
+        }
+
 
         private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
         {
@@ -148,7 +188,46 @@ namespace FromFrancisToLove.Controllers
             }
         }
 
-        // POST api/values
+
+
+
+
+
+        //[HttpGet("4")]
+        //public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
+        //{
+         
+
+        //    XmlPrueba xmlTest = new XmlPrueba();
+        //    xmlTest.Name = "IT";
+        //    xmlTest.Employees.Add(new Employee("Empleado|",new DataEmployee("H")));
+        //    xmlTest.Employees.Add(new Employee("Empleado2"));
+        //    xmlTest.Employees.Add(new Employee("eMPLEADO3"));
+        //    xmlTest.Employees.Add(new Employee("Empleado4"));
+
+        //    XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
+
+           
+        //    var settings = new XmlWriterSettings();
+        //    settings.Indent = true;
+        //    settings.OmitXmlDeclaration = true;
+        //    StringWriter sw = new StringWriter();
+        //    XmlWriter writer = XmlWriter.Create(sw, settings);
+        //    xmlPrueba.Serialize(writer, xmlTest);
+
+        //    var xml = sw.ToString();
+
+        //    return Ok();
+        //}
+
+
+
+
+
+
+
+
+
         [HttpPost]
         public void Post([FromBody]string value)
         {
