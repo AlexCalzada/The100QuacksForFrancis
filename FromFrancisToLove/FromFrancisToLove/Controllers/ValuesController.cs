@@ -76,30 +76,6 @@ namespace FromFrancisToLove.Controllers
             return Ok(saldo);
         }
 
-        // GET api/values/5
-        [HttpGet("2")]
-        public string Getxml(int id)
-        {
-            var item = _context.conexion_Configs.Find(2);
-
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope();
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible", item.Usr, item.Pwd);
-            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-            asyncResult.AsyncWaitHandle.WaitOne();
-            string soapResult;
-            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-            {
-                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                {
-                    soapResult = rd.ReadToEnd();
-                }
-                return soapResult;
-
-            }
-
-        }
-
 
         [HttpGet("3")]
         public IActionResult Post(/*int idGroup, int idChain, int idMerchant,int idPos*/)
@@ -137,7 +113,7 @@ namespace FromFrancisToLove.Controllers
 
             var item = _context.conexion_Configs.Find(2);
             HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/SaldoDisponible", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope2(xml);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope(xml);
 
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
@@ -165,14 +141,8 @@ namespace FromFrancisToLove.Controllers
             return webRequest;
         }
 
-        private static XmlDocument CreateSoapEnvelope()
-        {
-            XmlDocument soapEnvelopeDocument = new XmlDocument();
-            soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
 
-        }
-
-        private static XmlDocument CreateSoapEnvelope2(string xml)
+        private static XmlDocument CreateSoapEnvelope(string xml)
         {
             XmlDocument soapEnvelopeDocument = new XmlDocument();
             soapEnvelopeDocument.LoadXml(xml);
@@ -188,16 +158,11 @@ namespace FromFrancisToLove.Controllers
             }
         }
 
-
-
-
-
-
         [HttpGet("4")]
         public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
         {
 
-            XmlTadenor_TN xmlTest = new XmlTadenor_TN();
+            ReloadRequest xmlTest = new ReloadRequest();
             XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
 
             var settings = new XmlWriterSettings();
@@ -213,30 +178,12 @@ namespace FromFrancisToLove.Controllers
 
             return Ok();
         }
-     
 
-
-
-
-
-
-
-
-        [HttpPost]
-        public void Post([FromBody]string value)
+        // POST: api/TN
+        [HttpPost("post")]
+        public void Post(ReloadRequest value)
         {
-        }
-  
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            int x = value.ID_CHAIN;
         }
     }
 }

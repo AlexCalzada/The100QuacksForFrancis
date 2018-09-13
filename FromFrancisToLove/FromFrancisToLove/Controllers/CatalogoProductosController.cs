@@ -161,8 +161,8 @@ namespace FromFrancisToLove.Controllers
                 query.SKU = "8469760101006";
                 query.PhoneNumber = "1020304050";
                 query.TransNumber = 1020;
-                query.ID_Product = "SBH001";
-                query.ID_COUNTRY = 0;
+                //query.ID_Product = "SBH001";
+                //query.ID_COUNTRY = 0;
                 query.TC = 0;
 
                 //Serialización
@@ -184,15 +184,16 @@ namespace FromFrancisToLove.Controllers
                 var response = client.getReloadClassAsync(xml.ToString()).Result;
 
                 // Deserealización
-                var response_des = XmlToObject(response, typeof(ReloadResponse));
+                //var response_des = XmlToObject(response, typeof(ReloadResponse));
 
-                if (response_des == null)
-                {
-                    //return NotFound();
-                }
+                //if (response_des == null)
+                //{
+                //    //return NotFound();
+                //}
 
 
-                return Ok(response);
+                //return Ok(response);
+                return Ok();
             }
             catch (Exception ex)
             {

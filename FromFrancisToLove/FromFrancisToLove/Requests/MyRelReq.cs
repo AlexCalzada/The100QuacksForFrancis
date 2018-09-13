@@ -6,12 +6,12 @@ using System.Xml.Serialization;
 
 namespace FromFrancisToLove.Requests
 {
- 
 
-    
-  
+
+
+
     public class MyRelReq
-    { 
+    {
         [XmlElement("ID_GRP")]
         public int ID_GRP { get; set; }
         [XmlElement("ID_CHAIN")]
@@ -32,24 +32,27 @@ namespace FromFrancisToLove.Requests
         public int TC { get; set; }
     }
 
-    [XmlRoot("QueryRequest", Namespace = "http://www.pagoexpress.com.mx/ServicePX")]
+    [XmlRoot("QueryRequest")]
     public class QueryRequest : MyRelReq { }
-    [XmlRoot("ReloadRequest", Namespace = "http://www.pagoexpress.com.mx/ServicePX")]
+
+    [XmlRoot("ReloadRequest")]
     public class ReloadRequest : MyRelReq { }
 
-    [XmlRoot("DataRequest", Namespace = "http://www.pagoexpress.com.mx/ServicePX")]
+    [XmlRoot("DataRequest")]
     public class DataRequest : MyRelReq
-    {[XmlElement("ID_Product")]
+    {
+        [XmlElement("ID_Product")]
         public int ID_Product { get; set; }
     }
 
-    [XmlRoot("DataQueryRequest", Namespace = "http://www.pagoexpress.com.mx/ServicePX")]
-    public class DataQueryRequest : DataRequest {
+    [XmlRoot("DataQueryRequest")]
+    public class DataQueryRequest : DataRequest
+    {
         [XmlElement("ID_COUNTRY")]
         public int ID_COUNTRY { get; set; }
-
     }
- 
- 
+
+
 
 }
+
