@@ -15,7 +15,6 @@ namespace FromFrancisToLove.Models
         public string SKU { get; set; }
         public string Nombre { get; set; }
         public string Tipo { get; set; }
-
         public int ConfigId { get; set; }
 
         //[ForeignKey("ConfigId")]
