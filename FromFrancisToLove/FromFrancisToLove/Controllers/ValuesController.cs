@@ -20,7 +20,7 @@ namespace FromFrancisToLove.Controllers
 
         public ValuesController(HouseOfCards_Context context)
         {
-           
+
             _context = context;
         }
 
@@ -129,9 +129,9 @@ namespace FromFrancisToLove.Controllers
             settings.Indent = true;
             settings.OmitXmlDeclaration = true;
             StringWriter sw = new StringWriter();
-            XmlWriter writer = XmlWriter.Create(sw,settings);
+            XmlWriter writer = XmlWriter.Create(sw, settings);
             xmlPrueba.Serialize(writer, x, ns);
-            
+
             var xml = sw.ToString();
 
 
@@ -168,8 +168,8 @@ namespace FromFrancisToLove.Controllers
         private static XmlDocument CreateSoapEnvelope()
         {
             XmlDocument soapEnvelopeDocument = new XmlDocument();
-          soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
-            
+            soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
+
         }
 
         private static XmlDocument CreateSoapEnvelope2(string xml)
@@ -193,33 +193,27 @@ namespace FromFrancisToLove.Controllers
 
 
 
-        //[HttpGet("4")]
-        //public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
-        //{
-         
+        [HttpGet("4")]
+        public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
+        {
 
-        //    XmlPrueba xmlTest = new XmlPrueba();
-        //    xmlTest.Name = "IT";
-        //    xmlTest.Employees.Add(new Employee("Empleado|",new DataEmployee("H")));
-        //    xmlTest.Employees.Add(new Employee("Empleado2"));
-        //    xmlTest.Employees.Add(new Employee("eMPLEADO3"));
-        //    xmlTest.Employees.Add(new Employee("Empleado4"));
+            XmlTadenor_TN xmlTest = new XmlTadenor_TN();
+            XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
 
-        //    XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
+            var settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.OmitXmlDeclaration = true;
+            StringWriter sw = new StringWriter();
+            XmlWriter writer = XmlWriter.Create(sw, settings);
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add("Soap", "http://www.pagoexpress.com.mx/ServicePX");
+            xmlPrueba.Serialize(writer, xmlTest, ns);
 
-           
-        //    var settings = new XmlWriterSettings();
-        //    settings.Indent = true;
-        //    settings.OmitXmlDeclaration = true;
-        //    StringWriter sw = new StringWriter();
-        //    XmlWriter writer = XmlWriter.Create(sw, settings);
-        //    xmlPrueba.Serialize(writer, xmlTest);
+            var xml = sw.ToString();
 
-        //    var xml = sw.ToString();
-
-        //    return Ok();
-        //}
-
+            return Ok();
+        }
+     
 
 
 

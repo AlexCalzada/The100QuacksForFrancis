@@ -90,7 +90,6 @@ namespace FromFrancisToLove.Controllers
                 //RelReq.ResponseCode = 00;
                 //RelReq.DescripcionCode = "Reload Success";
                 //RelReq.Monto = 1340;
-                
 
                 var queryReq = new QueryRequest();
                 queryReq.ID_GRP = 7;
@@ -99,88 +98,56 @@ namespace FromFrancisToLove.Controllers
                 queryReq.ID_POS = 1;
                 queryReq.DateTime = DateTime.Now.ToString();
                 queryReq.SKU = "7378840101007";
-                queryReq.PhoneNumber = "1020304050";
+                queryReq.PhoneNumber = "8661425585";
                 queryReq.TransNumber = 1020;
-                queryReq.ID_COUNTRY = 0484;
+                //RelReq.ID_Product = "SBH001";
+              //  queryReq.ID_COUNTRY = 0484;
                 queryReq.TC = 0;
+                //RelReq.Brand = "TELCEL";
+                //RelReq.Instr1 = "MARCA *264";
+                //RelReq.Instr2 = "VIGENCIA TIEMPO AIRE 23 DIAS";
+                //RelReq.AutoNo = 0;
+                //RelReq.ResponseCode = 00;
+                //RelReq.DescripcionCode = "Reload Success";
+                //RelReq.Monto = 1340;
 
-                //Serialización
                 XmlSerializer xmlSerializer = new XmlSerializer(queryReq.GetType());
+
                 StringWriter sw = new StringWriter();
                 XmlWriter writer = XmlWriter.Create(sw);
                 xmlSerializer.Serialize(writer, queryReq);
                 var xml = sw.ToString();
 
-                //Se mandan las credenciales
+                
                 ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
 
                 client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
                 client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
                 
                 client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
-                
-                //Se almacena la respuesta del ws
-                var response = client.getQueryClassAsync(xml.ToString());
 
-                // Deserealización
-                var response_des = XmlToObject(response.Result, typeof(QueryResponse));
+                //var x = xml.ToString();
 
-                if (response_des == null)
-                {
-                    return NotFound();
-                }
+                var recarga = client.getQueryClassAsync(xml.ToString());
 
-                return Ok(response_des);
+                return Ok(recarga.Result);
             }
             catch (Exception ex)
             {
                 return BadRequest($"{ex}");
             }
         }
-
-        public static object XmlToObject(string xml, Type objectType)
-        {
-            StringReader strReader = null;
-            XmlSerializer serializer = null;
-            XmlTextReader xmlReader = null;
-            object obj = null;
-            try
-            {
-                strReader = new StringReader(xml);
-                serializer = new XmlSerializer(objectType);
-                xmlReader = new XmlTextReader(strReader);
-                obj = serializer.Deserialize(xmlReader);
-            }
-            catch (Exception exp)
-            {
-                //Handle Exception Code
-            }
-            finally
-            {
-                if (xmlReader != null)
-                {
-                    xmlReader.Close();
-                }
-                if (strReader != null)
-                {
-                    strReader.Close();
-                }
-            }
-            return obj;
-        }
-
+        
         // PUT: api/CatalogoProductos/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody]string value)
         {
-
         }
         
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-
         }
     }
 }
