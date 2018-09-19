@@ -71,7 +71,15 @@ namespace FromFrancisToLove.Requests.ModuleDiestel
 
         private static string Reverse(string v)
         {
-            throw new NotImplementedException();
+            char[] chars = v.ToCharArray();
+            string result = "";
+
+            for (int i = 0, j = v.Length - 1; i < v.Length; i++, j--)
+            {
+                result += chars[j];
+            }
+
+            return result;
         }
 
         public static string PXDecryptFX(string sInput, string sKey)

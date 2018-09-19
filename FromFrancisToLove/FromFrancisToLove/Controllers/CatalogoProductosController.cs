@@ -153,17 +153,17 @@ namespace FromFrancisToLove.Controllers
 
                 var query = new ReloadRequest();
 
-                query.ID_GRP = 7;
-                query.ID_CHAIN = 1;
-                query.ID_MERCHANT = 1;
-                query.ID_POS = 1;
+                query.ID_GRP = 7+"";
+                query.ID_CHAIN = 1+"";
+                query.ID_MERCHANT = 1+"";
+                query.ID_POS = 1+"";
                 query.DateTime = DateTime.Now.ToString();
                 query.SKU = "8469760101006";
                 query.PhoneNumber = "1020304050";
-                query.TransNumber = 1020;
+                query.TransNumber = 1020+"";
                 //query.ID_Product = "SBH001";
                 //query.ID_COUNTRY = 0;
-                query.TC = 0;
+                query.TC = 0+"";
 
                 //Serialización
                 XmlSerializer xmlSerializer = new XmlSerializer(query.GetType());
