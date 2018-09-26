@@ -81,7 +81,7 @@ namespace FromFrancisToLove.Requests
     }
 
 
-    [XmlRoot("ReloadResponse")]
+
     public class ReloadResponse : MyRelReq
     {
         public string Brand { get; set; }
@@ -95,8 +95,14 @@ namespace FromFrancisToLove.Requests
         public string DescripcionCode { get; set; }
 
         public string ID_COUNTRY { get; set; }
+
+        public string Monto { get; set; }
+
+        public string ID_Product { get; set; }
+
     }
 
-
+    public class DataResponse : ReloadResponse
+    { }
 }
 

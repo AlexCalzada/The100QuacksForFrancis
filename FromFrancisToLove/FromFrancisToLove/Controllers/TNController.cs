@@ -26,23 +26,13 @@ namespace FromFrancisToLove.Controllers
         }
 
         [HttpPost("Recarga_Celular")]
-        public IActionResult CPA_TN(ReloadRequest xmlData)
+        public IActionResult _TN(ReloadRequest xmlData)
         {
             if (ReloadValidation(xmlData) != null) // Se valida los Campos
             {
                 return Content(ReloadValidation(xmlData));
             }
             var sXML = GetXMLs(xmlData);// Se Genera <XMLs> como String Escapado 
-            Task t = Task.Run(() =>
-            {
-            var item2 = _context.conexion_Configs.Find(2);
-            //Consulta credenciales en la BD 
-
-
-
-            });
-            t = Task.Delay(500000);
-            
             var item = _context.conexion_Configs.Find(2);
 
             HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getReloadClass", item.Usr, item.Pwd);
@@ -63,7 +53,7 @@ namespace FromFrancisToLove.Controllers
 
 
             ReloadResponse ResponseXml = new ReloadResponse();
-            ResponseXml = GetReloadResponse(soapResult, "getReloadClassResult");
+            ResponseXml = GetResponse(soapResult, "getReloadClassResult");
 
             if (ResponseXml.ResponseCode == null || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
             {
@@ -75,7 +65,10 @@ namespace FromFrancisToLove.Controllers
                     return Content(x);
                 }
             }
-
+            if (ResponseXml.ResponseCode != "0")
+            {
+                return Content(ResponseXml.DescripcionCode);
+            }
 
             string Ticket =  
             "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
@@ -146,26 +139,88 @@ namespace FromFrancisToLove.Controllers
         }
 
 
-        //RECARGA DE DATOS
-    
+
         [HttpPost("Recarga_Datos")]
-        public IActionResult RTA_TN(DataRequest xmlData)
+        public IActionResult RD_TN(DataRequest xmlData)
         {
-            XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
-            var settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.OmitXmlDeclaration = true;         
-            StringWriter sw = new StringWriter();
-            XmlWriter writer = XmlWriter.Create(sw, settings);
-            xmls.Serialize(writer, xmlData);
-            var sXML = sw.ToString();
+            if (DataValidation(xmlData) != null) // Se valida los Campos
+            {
+                return Content(DataValidation(xmlData));
+            }
+            var sXML = GetXMLs(xmlData);// Se Genera <XMLs> como String Escapado 
+            var item = _context.conexion_Configs.Find(2);
 
-            sXML = @"<?xml version=""1.0"" encoding=""utf-8""?>"+ sXML;
-            sXML = ScapeXML(sXML);
+            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getReloadData", item.Usr, item.Pwd);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getReloadData", sXML);
+            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            asyncResult.AsyncWaitHandle.WaitOne();
+            string soapResult;
+
+            try
+            {
+                WebResponse webResponse = webRequest.EndGetResponse(asyncResult);
+
+                StreamReader rd = new StreamReader(webResponse.GetResponseStream());
+                soapResult = rd.ReadToEnd();
+            }
+            catch (Exception) { throw; }
+
+
+            ReloadResponse ResponseXml = new ReloadResponse();
+            ResponseXml = GetDataResponse(soapResult, "getReloadDataResult");
+
+            if (ResponseXml.ResponseCode == null || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+            {
+                ResponseXml.TC = xmlData.TC;
+                ResponseXml.SKU = xmlData.SKU;
+                ResponseXml.ID_Product = xmlData.ID_Product;
+                string x = EnumPrueba.TN_Cod(CD_TN(ResponseXml));
+                if (x != "")
+                {
+                    return Content(x);
+                }
+            }
+            if (ResponseXml.ResponseCode != "0")
+            {
+                return Content(ResponseXml.DescripcionCode);
+            }
+
+                string Ticket =
+                "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
+                "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+                "MONTO:            " + "100" + Environment.NewLine +//Se consulta el SKU para traer el monto!!!!!!!!!!!!!
+                "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
+                Environment.NewLine +
+                "TELCEL" + Environment.NewLine +
+                "ESTIMADO CLIENTE EN CASO DE PRESENTARSE ALGUN PROBLEMA CON SU TIEMPO AIRE FAVOR DE" + Environment.NewLine +
+                "COMUNICARSE A ATENCION A CLIENTES TELCEL *264 DESDE SU TELCEL O DESDE EL INTERIOR DE LA REPUBLICA" + Environment.NewLine +
+                "AL 01800-710-5687" + Environment.NewLine +
+                Environment.NewLine +
+                "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
+                "TIENDA:" + Environment.NewLine +
+                ResponseXml.ResponseCode + ":" +
+                ResponseXml.DescripcionCode;
+
+                return Content(Ticket);
+            
+
+        }
+
+        public string CD_TN(ReloadResponse xmlReloadResponse)
+        {
+            QueryRequest xmlQueryRequest = new QueryRequest();
+
+            xmlQueryRequest.PhoneNumber = xmlReloadResponse.PhoneNumber;
+            xmlQueryRequest.SKU = xmlReloadResponse.SKU;
+            xmlQueryRequest.TC = xmlReloadResponse.TC;
+            xmlQueryRequest.TransNumber = xmlReloadResponse.TransNumber;
+
+            var sXML = GetXMLs(xmlQueryRequest);
 
             var item = _context.conexion_Configs.Find(2);
-            HttpWebRequest webRequest = CreateWebRequest(item.Url,"http://www.pagoexpress.com.mx/ServicePX/getReloadClass", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getReloadData",sXML);
+            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getQueryClass", item.Usr, item.Pwd);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getQueryClass", sXML);
 
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
@@ -177,45 +232,27 @@ namespace FromFrancisToLove.Controllers
                 {
                     soapResult = rd.ReadToEnd();
                 }
-                return Content(soapResult);
             }
-        }
 
-        
-        [HttpPost("Consulta_Datos")]
-        public IActionResult RPD_TN(DataQueryRequest xmlData)
-        {
-            XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
-            var settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.OmitXmlDeclaration = true;
-            StringWriter sw = new StringWriter();
-            XmlWriter writer = XmlWriter.Create(sw, settings);
-            xmls.Serialize(writer, xmlData);
-            var sXML = sw.ToString();
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.LoadXml(soapResult);
+            XmlNodeList nodeList = xmldoc.GetElementsByTagName("getQueryClassResult");
 
-            sXML = @"<?xml version=""1.0"" encoding=""utf-8""?>" + sXML;
-            sXML = ScapeXML(sXML);
-
-            var item = _context.conexion_Configs.Find(2);
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getReloadClass", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getQueryDatClass", sXML);
-
-            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-            asyncResult.AsyncWaitHandle.WaitOne();
-            string soapResult;
-            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            string xml = "";
+            foreach (XmlNode node in nodeList)
             {
-                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                {
-                    soapResult = rd.ReadToEnd();
-                }
-                return Content(soapResult);
+                xml = node.InnerText;
             }
+            xmldoc.LoadXml(Des_ScapeXML(xml));
+            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
+
+            string x = string.Empty;
+            foreach (XmlNode node in nodeList)
+            {
+                x = node.InnerText;
+            }
+            return x;
         }
-
-
 
 
 
@@ -234,7 +271,7 @@ namespace FromFrancisToLove.Controllers
             return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" +sw.ToString());
         }
 
-        public ReloadResponse GetReloadResponse(string xml,string path)
+        public ReloadResponse GetResponse(string xml,string path)
         {
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.LoadXml(xml);
@@ -256,7 +293,30 @@ namespace FromFrancisToLove.Controllers
             ReloadResponse rr = (ReloadResponse)xmls.Deserialize(sr);
             return rr;
         }
-        
+
+        public DataResponse GetDataResponse(string xml, string path)
+        {
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.LoadXml(xml);
+            XmlNodeList nodeList = xmldoc.GetElementsByTagName(path);
+
+            foreach (XmlNode node in nodeList)
+            {
+                xml = node.InnerText;
+            }
+            xmldoc.LoadXml(Des_ScapeXML(xml));
+            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
+
+            XmlSerializer xmls = new XmlSerializer(typeof(DataResponse));
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(xml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            StreamReader sr = new StreamReader(stream);
+            DataResponse rr = (DataResponse)xmls.Deserialize(sr);
+            return rr;
+        }
+
         public string ReloadValidation(ReloadRequest xml)
         {
             int v;
@@ -276,6 +336,29 @@ namespace FromFrancisToLove.Controllers
 
             return null;
         }
+
+        public string DataValidation(DataRequest xml)
+        {
+            int v;
+            if (xml.ID_Product.ToString().Length > 6) { return "Caracteres de id Porducto es superior a 6 "; }
+
+
+            if (xml.SKU.ToString().Length > 13) { return "SKU lenght es mayor a 13"; }
+
+
+            if (xml.PhoneNumber.ToString().Length > 10) { return "PhoneNumber lenght es mayor a 10"; }
+
+
+            if (!(int.TryParse(xml.TransNumber, out v))) { return "TransNumber  No es Entero"; }
+            if (xml.TransNumber.ToString().Length > 5) { return "TransNumber lenght es mayor a 5"; }
+
+
+            if (!(int.TryParse(xml.TC, out v))) { return "TC  No es Entero"; }
+            if (xml.TC.ToString().Length > 1) { return "TC lenght es mayor a 1"; }
+
+            return null;
+        }
+
 
         private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
         {
@@ -350,7 +433,6 @@ namespace FromFrancisToLove.Controllers
                 case 99: return "MANTENIMIENTO EN PROGRESO, INTENTE MAS TARDE";
             }
             return "";
-
         }
 
     }
