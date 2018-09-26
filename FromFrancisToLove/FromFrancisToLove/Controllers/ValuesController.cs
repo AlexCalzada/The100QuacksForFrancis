@@ -10,6 +10,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using FromFrancisToLove.Requests;
 using System.Text;
+using FromFrancisToLove.Requests.DiestelMio;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -30,8 +31,7 @@ namespace FromFrancisToLove.Controllers
         {
             try
             {
-                ServicePXSoapClient.EndpointConfiguration endpoint = new ServicePXSoapClient.EndpointConfiguration();
-                ServicePXSoapClient client = new ServicePXSoapClient(endpoint);
+                ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
 
                 client.ClientCredentials.UserName.UserName = CredentialsTadenor.Usr;
                 client.ClientCredentials.UserName.Password = CredentialsTadenor.Psw;
@@ -42,9 +42,9 @@ namespace FromFrancisToLove.Controllers
 
                 return Ok(saldo);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return Ok($"{ex}");
+                return Ok($"Error 500 -- Internal Server Error");
             }
         }
 
@@ -168,8 +168,8 @@ namespace FromFrancisToLove.Controllers
         private static XmlDocument CreateSoapEnvelope()
         {
             XmlDocument soapEnvelopeDocument = new XmlDocument();
-          soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>"); return soapEnvelopeDocument;
-            
+            soapEnvelopeDocument.LoadXml(@"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/""><soap:Body><SaldoDisponible xmlns=""http://www.pagoexpress.com.mx/ServicePX""><lGrupo>7</lGrupo><lCadena>1</lCadena><lTienda>1</lTienda></SaldoDisponible></soap:Body></soap:Envelope>");
+            return soapEnvelopeDocument;
         }
 
         private static XmlDocument CreateSoapEnvelope2(string xml)
@@ -193,32 +193,39 @@ namespace FromFrancisToLove.Controllers
 
 
 
-        //[HttpGet("4")]
-        //public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
-        //{
-         
+        [HttpGet("4")]
+        public IActionResult Xml(/*int idGroup, int idChain, int idMerchant,int idPos*/)
+        {
 
-        //    XmlPrueba xmlTest = new XmlPrueba();
-        //    xmlTest.Name = "IT";
-        //    xmlTest.Employees.Add(new Employee("Empleado|",new DataEmployee("H")));
-        //    xmlTest.Employees.Add(new Employee("Empleado2"));
-        //    xmlTest.Employees.Add(new Employee("eMPLEADO3"));
-        //    xmlTest.Employees.Add(new Employee("Empleado4"));
 
-        //    XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
+            cCampo xmlTest = new cCampo();
 
-           
-        //    var settings = new XmlWriterSettings();
-        //    settings.Indent = true;
-        //    settings.OmitXmlDeclaration = true;
-        //    StringWriter sw = new StringWriter();
-        //    XmlWriter writer = XmlWriter.Create(sw, settings);
-        //    xmlPrueba.Serialize(writer, xmlTest);
+            //Campo [] campo = new Campo[1];
 
-        //    var xml = sw.ToString();
+            //campo[0] = new Campo();
+            //campo[0].sCampos = "RESPUESTA";
+            //campo[0].iTipo = Tipo.AN;
+            //campo[0].iClase = 0;
+            //campo[0].iLongitud = 0;
+            //campo[0].sValors = "99H9H9F9F4H5F5F";
+            //campo[0].bEncriptado = false;
 
-        //    return Ok();
-        //}
+            //xmlTest.body.info.arrayCampos.cCampos.Add(new Campo("RESPUESTA", Tipo.AN, 0, 0, "SD9S9GS9G9", false));
+            
+            XmlSerializer xmlPrueba = new XmlSerializer(xmlTest.GetType());
+
+
+            var settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.OmitXmlDeclaration = true;
+            StringWriter sw = new StringWriter();
+            XmlWriter writer = XmlWriter.Create(sw, settings);
+            xmlPrueba.Serialize(writer, xmlTest);
+
+            var xml = sw.ToString();
+
+            return Ok();
+        }
 
 
 

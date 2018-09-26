@@ -12,8 +12,12 @@ using Tadenor;
 using Diestel;
 using System.Xml;
 using FromFrancisToLove.Requests.ModuleDiestel;
+using FromFrancisToLove.Requests.DiestelMio;
 using PXSecurity.Datalogic.Classes;
 using FromFrancisToLove.Models;
+using System.Net;
+using System.Xml.Linq;
+using FromFrancisToLove.ExtensionMethods;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -21,6 +25,9 @@ namespace FromFrancisToLove.Controllers
     [Route("api/CatalogoProductos")]
     public class CatalogoProductosController : Controller
     {
+        protected const string EnvelopeBody_begin_xml = "<soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'><soap:Body><Ejecuta xmlns='http://www.pagoexpress.com.mx/pxUniversal'>";
+        protected const string EnvelopeBody_end_xml = "</Ejecuta></soap:Body></soap:Envelope>";
+
         private readonly HouseOfCards_Context _context;
         //
         public CatalogoProductosController(HouseOfCards_Context context)
@@ -34,88 +41,63 @@ namespace FromFrancisToLove.Controllers
         {
             try
             {
-                PxUniversalSoapClient client = new PxUniversalSoapClient(PxUniversalSoapClient.EndpointConfiguration.PxUniversalSoap);
-                client.ClientCredentials.UserName.UserName = Connected_Services.Diestel.CredentialsDiestel.Usr;
-                client.ClientCredentials.UserName.Password = Connected_Services.Diestel.CredentialsDiestel.Psw;
-                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
-
-                cCampo[] cCamp = new cCampo[10];
+                var config = _context.conexion_Configs.Find(1);
                 var modulo = new ModuleTDV();
+                string pago = TipoPago.Efectivo.AsText();
 
-                
+                //modulo.Grupo = module.Grupo;
+                //modulo.Cadena = module.Cadena;
+                //modulo.Tienda = module.Tienda;
+                //modulo.POS = module.POS;
+                //modulo.Cajero = module.Cajero;
 
-                modulo.Grupo = 7;
-                modulo.Cadena = 1;
-                modulo.Tienda = 1;
-                modulo.POS = 1;
-                modulo.Cajero = 1;
-                modulo.SKU = "8469761001749";
-                modulo.EncriptionKey = "pxD4t09*09Wm";
+                modulo.SKU = "8469760000187";
+                modulo.EncriptionKey = config.CrypKey;
                 modulo.TokenValor = "1020304050";
 
-                cCamp[0] = new cCampo();
-                cCamp[0].sCampo = "IDGRUPO";
-                cCamp[0].sValor = modulo.Grupo;
+                var list = new List<Requests.DiestelMio.cCampo>();
+                list.AddRange(new Requests.DiestelMio.cCampo[]
+                {
+                    new Requests.DiestelMio.cCampo("IDGRUPO", 7),
+                    new Requests.DiestelMio.cCampo("IDCADENA", 1),
+                    new Requests.DiestelMio.cCampo("IDTIENDA", 1),
+                    new Requests.DiestelMio.cCampo("IDPOS", 1),
+                    new Requests.DiestelMio.cCampo("IDCAJERO", 1),
+                    new Requests.DiestelMio.cCampo("FECHALOCAL", DateTime.Now.ToString("dd/MM/yyyy")),
+                    new Requests.DiestelMio.cCampo("HORALOCAL", DateTime.Now.ToString("HH:mm:ss")),
+                    new Requests.DiestelMio.cCampo("FECHACONTABLE", DateTime.Now.ToString("dd/MM/yyyy")),
+                    new Requests.DiestelMio.cCampo("TRANSACCION", modulo.NextTicket),
+                    new Requests.DiestelMio.cCampo("SKU", modulo.SKU),
+                    new Requests.DiestelMio.cCampo("TIPOPAGO", pago),
 
-                cCamp[1] = new cCampo();
-                cCamp[1].sCampo = "IDCADENA";
-                cCamp[1].sValor = modulo.Cadena;
+                    new Requests.DiestelMio.cCampo("REFERENCIA", "9A4E5ADBAE1E3E0DBA9A83", true),
+                    new Requests.DiestelMio.cCampo("MONTO", 20.00)
+                });
 
-                cCamp[2] = new cCampo();
-                cCamp[2].sCampo = "IDTIENDA";
-                cCamp[2].sValor = modulo.Tienda;
+                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Requests.DiestelMio.cCampo>), new XmlRootAttribute("cArrayCampos"));
+                StringWriter sw = new StringWriter();
+                XmlWriter writer = XmlWriter.Create(sw);
+                xmlSerializer.Serialize(writer, list);
 
-                cCamp[3] = new cCampo();
-                cCamp[3].sCampo = "IDPOS";
-                cCamp[3].sValor = modulo.POS;
+                var sXml = RemoveAllNamespaces(sw.ToString());
 
-                cCamp[4] = new cCampo();
-                cCamp[4].sCampo = "IDCAJERO";
-                cCamp[4].sValor = modulo.Cajero;
+                HttpWebRequest webRequest = CreateWebRequest(config.Url, "http://www.pagoexpress.com.mx/pxUniversal/Ejecuta", config.Usr, config.Pwd);
+                XmlDocument soapEnvelopeXml = CreateSoapEnvelope(sXml);
 
-                cCamp[5] = new cCampo();
-                cCamp[5].sCampo = "FECHALOCAL";
-                cCamp[5].sValor = DateTime.Now.ToString("dd/MM/yyyy");
+                InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+                IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+                asyncResult.AsyncWaitHandle.WaitOne();
 
-                cCamp[6] = new cCampo();
-                cCamp[6].sCampo = "HORALOCAL";
-                cCamp[6].sValor = DateTime.Now.ToString("HH:mm:ss");
+                string soapResult;
+                using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+                {
+                    using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                    {
+                        soapResult = rd.ReadToEnd();
+                    }
 
-                //cCamp[7] = new cCampo();
-                //cCamp[7].sCampo = "TRANSACCION";
-                //cCamp[7].sValor = modulo.NextTicket;
-                //lblNoTX.Text = "No. Transaccion: " & cCamp(7).sValor
-                //lblNoTX.Refresh()
-                //actualizamos el numero de ticket en la BD
-                //UpdateTX(ModPDV.ID, CLng(cCamp(7).sValor))
-
-                cCamp[7] = new cCampo();
-                cCamp[7].sCampo = "FECHACONTABLE";
-                cCamp[7].sValor = DateTime.Now.ToString("dd/MM/yyyy");
-
-                cCamp[8] = new cCampo();
-                cCamp[8].sCampo = "SKU";
-                cCamp[8].sValor = modulo.SKU;
-
-                cCamp[9] = new cCampo();
-                cCamp[9].sCampo = "REFERENCIA";
-                //cCamp[10].sValor = Encriptacion.PXEncryptFX("9A4E5ADBAE1E3E0DBA9A83", modulo.EncriptionKey);
-                cCamp[9].sValor = "9A4E5ADBAE1E3E0DBA9A83";
-                cCamp[9].bEncriptado = false;
-
-                //cCamp[11] = new cCampo();
-                //cCamp[11].sCampo = "TOKEN";
-                //cCamp[11].sValor = modulo.TokenValor;
-                
-
-
-
-
-                var response = client.InfoAsync(cCamp).Result;
-
-                //var response = _context.catalogos_Productos.Where(n => n.ConfigId == 1);
-
-                return Ok(response);
+                    return Content(soapResult);
+                }
             }
             catch (Exception ex)
             {
@@ -123,29 +105,78 @@ namespace FromFrancisToLove.Controllers
             }
         }
 
-        // GET: api/CatalogoProductos/5
-        [HttpGet("{id}", Name = "Get")]
-        public IActionResult Get(string value)
+        private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
         {
-            if (value != "")
-            {
-                var response = _context.catalogos_Productos.Select(n => new Catalogos_Producto
-                {
-                    SKU = n.SKU,
-                    Nombre = n.Nombre
-                }).Where(n => n.Tipo == value);
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Credentials = new NetworkCredential(Usr, Pwd);
+            webRequest.Headers.Add("SOAPAction", action);
+            webRequest.ContentType = "text/xml;charset=\"utf-8\"";
+            webRequest.Method = "POST";
 
-                return Ok(response);
-            }
-            else
-            {
-                return NotFound();
-            }
-            
+            return webRequest;
         }
+
+        private static XmlDocument CreateSoapEnvelope(string sXml)
+        {
+            XmlDocument soapEnvelopeDocument = new XmlDocument();
+            soapEnvelopeDocument.LoadXml($"{EnvelopeBody_begin_xml}{sXml}{EnvelopeBody_end_xml}");
+
+            return soapEnvelopeDocument;
+        }
+
+        private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
+        {
+            using (Stream stream = webRequest.GetRequestStream())
+            {
+                soapEnvelopeXml.Save(stream);
+            }
+        }
+
+        public static string RemoveAllNamespaces(string xmlDocument)
+        {
+            XElement xmlDocumentWithoutNs = RemoveAllNamespaces(XElement.Parse(xmlDocument));
+
+            return xmlDocumentWithoutNs.ToString();
+        }
+
+        private static XElement RemoveAllNamespaces(XElement xmlDocument)
+        {
+            if (!xmlDocument.HasElements)
+            {
+                XElement xElement = new XElement(xmlDocument.Name.LocalName);
+                xElement.Value = xmlDocument.Value;
+
+                foreach (XAttribute attribute in xmlDocument.Attributes())
+                    xElement.Add(attribute);
+
+                return xElement;
+            }
+            return new XElement(xmlDocument.Name.LocalName, xmlDocument.Elements().Select(el => RemoveAllNamespaces(el)));
+        }
+
+        // GET: api/CatalogoProductos/5
+        //[HttpGet("{id}", Name = "Get")]
+        //public IActionResult Get(string value)
+        //{
+        //    if (value != "")
+        //    {
+        //        var response = _context.catalogos_Productos.Select(n => new Catalogos_Producto
+        //        {
+        //            SKU = n.SKU,
+        //            Nombre = n.Nombre
+        //        }).Where(n => n.Tipo == value);
+
+        //        return Ok(response);
+        //    }
+        //    else
+        //    {
+        //        return NotFound();
+        //    }
+            
+        //}
         
         // POST: api/CatalogoProductos
-        [HttpPost("1")]
+        [HttpPost()]
         public IActionResult Post()
         {
             try
@@ -161,8 +192,8 @@ namespace FromFrancisToLove.Controllers
                 query.SKU = "8469760101006";
                 query.PhoneNumber = "1020304050";
                 query.TransNumber = 1020;
-                query.ID_Product = "SBH001";
-                query.ID_COUNTRY = 0;
+                //query.ID_Product = "SBH001";
+                //query.ID_COUNTRY = 0;
                 query.TC = 0;
 
                 //Serialización
@@ -183,13 +214,13 @@ namespace FromFrancisToLove.Controllers
                 //Se almacena la respuesta del ws
                 var response = client.getReloadClassAsync(xml.ToString()).Result;
 
-                // Deserealización
-                var response_des = XmlToObject(response, typeof(ReloadResponse));
+                //// Deserealización
+                //var response_des = XmlToObject(response, typeof(ReloadResponse));
 
-                if (response_des == null)
-                {
-                    //return NotFound();
-                }
+                //if (response_des == null)
+                //{
+                //    //return NotFound();
+                //}
 
 
                 return Ok(response);
