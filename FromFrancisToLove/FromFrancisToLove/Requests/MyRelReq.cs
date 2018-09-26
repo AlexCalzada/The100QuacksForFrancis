@@ -14,18 +14,39 @@ namespace FromFrancisToLove.Requests
     public class MyRelReq
     {
         [XmlElement("ID_GRP")]
-       
-        public string ID_GRP { get; set; }
-       
+
+        public int ID_GRP
+        {
+            get{return 7;}
+            set { }
+
+        }
         [XmlElement("ID_CHAIN")]
-        public string ID_CHAIN{get;set;}
+        public int ID_CHAIN{
+            get { return 1; }
+            set { }
+        }
 
         [XmlElement("ID_MERCHANT")]
-        public string ID_MERCHANT { get; set; }
+        public int ID_MERCHANT {
+            get { return 1; }
+            set { }
+        }
         [XmlElement("ID_POS")]
-        public string ID_POS { get; set; }
+        public int ID_POS {
+            get { return 1; }
+            set { }
+        }
         [XmlElement("DateTime")]
-        public string DateTime { get; set; }
+        public string Datetime
+        {
+            get {
+                 // return "17/06/2006 21:00:12";
+                return DateTime.Now.ToString(); 
+            }
+            set { }
+         
+        }
         [XmlElement("SKU")]
         public string SKU { get; set; }
         [XmlElement("PhoneNumber")]
