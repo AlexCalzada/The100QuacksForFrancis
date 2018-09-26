@@ -15,24 +15,8 @@ namespace FromFrancisToLove.Controllers
         private readonly HouseOfCards_Context _context;
 
         public BDController(HouseOfCards_Context context)
-        {
-            
+        {          
             _context = context;
-            //if (_context.Producto.Count()==0)
-            //{
-                
-            //}
-
         }
-
-  
-       // [HttpGet("0")]
-        //public List<> GetBD()
-        //{
-        //    return _context.Producto.ToList();
-        //}
-
-        // GET api/values/5
-    
     }
 }

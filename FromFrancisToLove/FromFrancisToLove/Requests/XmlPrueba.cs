@@ -23,27 +23,81 @@ namespace FromFrancisToLove.Requests
     {
         [XmlElement("cArrayCampos")]
         public cArrayCampos_PE cArrayCampos { get; set; }
+
+
+
     }
 
     [XmlRoot("cArrayCampos")]
     public class cArrayCampos_PE
     {
+        public List<cCampo_PE> cCampos_PE { get; set; }
 
+        public cArrayCampos_PE()
+        {
+            cCampos_PE = new List<cCampo_PE>();
+        }
+
+    }
+
+    public class cCampo_PE
+    {
+
+        public List<cCampo_PE> cCampos_PE { get; set; }
+
+
+       
+        public cCampo_PE() { }
+
+
+
+        public string sCampo { get; set; }
+        public int iTipo { get; set; }
+        public int Longitud { get; set; }
+        public int iClase { get; set; }
+        public int sValor { get; set; }
+        public bool bEncriptado { get; set; }
+
+        public cCampo_PE(string scampo, int itipo, int longitud, int iclase,int svalor,bool bencriptado)
+        {
+            sCampo = scampo;
+            iTipo = itipo;
+            Longitud = longitud;
+            iClase = iclase;
+            sValor = svalor;
+            bEncriptado = bencriptado;
+
+        }
+
+    }
+
+    public class Data_cCampo_PE
+    {
+
+        public string Dato { get; set; }
+
+        public Data_cCampo_PE() { }
+
+        public Data_cCampo_PE(string scampo, int itipo, int longitud, int iclase, int svalor, bool bencriptado)
+        {
+            Dato = Dato;
+        }
     }
 
 
 
 
+    public class XmlPruebaPadre
+    {
+        public XmlPrueba xmlPrueba { get; set; }
 
-
-
+    }
 
 
 
     public class XmlPrueba
     {
-        public string Name { get; set; }
-
+    
         public List<Employee> Employees { get; set; }
 
         public XmlPrueba()
@@ -55,42 +109,34 @@ namespace FromFrancisToLove.Requests
     public class Employee
     {
          public List<DataEmployee> DataEmployee { get; set; }
+        
 
-       
         public string Name { get; set; }
 
+        public string Edad { get; set; }
         public Employee() { }
 
-        public Employee(string name)
+        public Employee(string name,string edad)
         {
             Name = name;
+            Edad = edad;
         }
+
     }
 
     public class DataEmployee
     {
-        public string Age { get; set; }
+  
         public string Dato { get; set; }
-
 
         public DataEmployee() { }
 
-        public DataEmployee(string name)
+        public DataEmployee(string name, string edad)
         {
-            Age = Age;
             Dato = Dato;
-        }
-
-       
-        
+        }   
     }
 
 
-    public class Person
-    {
-        public int Age { get; set; }
-        public string Name { get; set; }
 
-
-    }
 }
