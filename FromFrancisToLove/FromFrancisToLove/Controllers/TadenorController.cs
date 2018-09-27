@@ -19,7 +19,7 @@ namespace FromFrancisToLove.Controllers
     [Route("api/TN")]
     public class TadenorController : Controller
     {
-        // GET api/TN
+        
         [HttpGet]
         public IActionResult Get()
         {
@@ -360,7 +360,6 @@ namespace FromFrancisToLove.Controllers
 
             return null;
         }
-
 
         private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
         {
