@@ -80,8 +80,6 @@ namespace FromFrancisToLove.Requests
         public string ID_COUNTRY { get; set; }
     }
 
-
-
     public class ReloadResponse : MyRelReq
     {
         public string Brand { get; set; }

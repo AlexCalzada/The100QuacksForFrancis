@@ -11,16 +11,31 @@ using FromFrancisToLove.Requests;
 using System.Xml.Serialization;
 using System.IO;
 using System.Text;
-
+using Newtonsoft.Json;
 
 namespace FromFrancisToLove.Controllers
 {
     [Produces("application/json")]
     [Route("api/TN")]
-    public class TNController : Controller
+    public class TadenorController : Controller
     {
+        // GET api/TN
+        [HttpGet]
+        public IActionResult Get()
+        {
+            try
+            {
+       
+                return Ok("Skus");
+            }
+            catch (Exception)
+            {
+                return Ok($"Error 500 -- Internal Server Error");
+            }
+        }
+
         public readonly HouseOfCards_Context _context;
-        public TNController(HouseOfCards_Context context)
+        public TadenorController(HouseOfCards_Context context)
         {
             _context = context;
         }
@@ -181,30 +196,17 @@ namespace FromFrancisToLove.Controllers
                     return Content(x);
                 }
             }
-            if (ResponseXml.ResponseCode != "0")
-            {
-                return Content(ResponseXml.DescripcionCode);
-            }
+            //if (ResponseXml.ResponseCode != "0")
+            //{
+            //    return Content(ResponseXml.DescripcionCode);
+            //}
 
-                string Ticket =
-                "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
-                "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
-                "MONTO:            " + "100" + Environment.NewLine +//Se consulta el SKU para traer el monto!!!!!!!!!!!!!
-                "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
-                Environment.NewLine +
-                "TELCEL" + Environment.NewLine +
-                "ESTIMADO CLIENTE EN CASO DE PRESENTARSE ALGUN PROBLEMA CON SU TIEMPO AIRE FAVOR DE" + Environment.NewLine +
-                "COMUNICARSE A ATENCION A CLIENTES TELCEL *264 DESDE SU TELCEL O DESDE EL INTERIOR DE LA REPUBLICA" + Environment.NewLine +
-                "AL 01800-710-5687" + Environment.NewLine +
-                Environment.NewLine +
-                "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
-                "TIENDA:" + Environment.NewLine +
-                ResponseXml.ResponseCode + ":" +
-                ResponseXml.DescripcionCode;
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(ResponseXml.ToString());
 
-                return Content(Ticket);
-            
+            string json = JsonConvert.SerializeXmlNode(doc);
 
+            return Content(json);
         }
 
         public string CD_TN(ReloadResponse xmlReloadResponse)

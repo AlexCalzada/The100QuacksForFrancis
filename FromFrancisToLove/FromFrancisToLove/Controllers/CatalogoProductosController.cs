@@ -176,60 +176,60 @@ namespace FromFrancisToLove.Controllers
         //}
         
         // POST: api/CatalogoProductos
-        [HttpPost()]
-        public IActionResult Post()
-        {
-            try
-            {            
+        //[HttpPost()]
+        //public IActionResult Post()
+        //{
+        //    try
+        //    {            
 
-                var query = new ReloadRequest();
+        //        var query = new ReloadRequest();
 
-                query.ID_GRP = 7;
-                query.ID_CHAIN = 1;
-                query.ID_MERCHANT = 1;
-                query.ID_POS = 1;
-                query.DateTime = DateTime.Now.ToString();
-                query.SKU = "8469760101006";
-                query.PhoneNumber = "1020304050";
-                query.TransNumber = 1020;
-                //query.ID_Product = "SBH001";
-                //query.ID_COUNTRY = 0;
-                query.TC = 0;
+        //        query.ID_GRP = 7;
+        //        query.ID_CHAIN = 1;
+        //        query.ID_MERCHANT = 1;
+        //        query.ID_POS = 1;
+        //        query.DateTime = DateTime.Now.ToString();
+        //        query.SKU = "8469760101006";
+        //        query.PhoneNumber = "1020304050";
+        //        query.TransNumber = 1020;
+        //        //query.ID_Product = "SBH001";
+        //        //query.ID_COUNTRY = 0;
+        //        query.TC = 0;
 
-                //Serialización
-                XmlSerializer xmlSerializer = new XmlSerializer(query.GetType());
-                StringWriter sw = new StringWriter();
-                XmlWriter writer = XmlWriter.Create(sw);
-                xmlSerializer.Serialize(writer, query);
-                var xml = sw.ToString();
+        //        //Serialización
+        //        XmlSerializer xmlSerializer = new XmlSerializer(query.GetType());
+        //        StringWriter sw = new StringWriter();
+        //        XmlWriter writer = XmlWriter.Create(sw);
+        //        xmlSerializer.Serialize(writer, query);
+        //        var xml = sw.ToString();
 
-                //Se mandan las credenciales
-                ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
+        //        //Se mandan las credenciales
+        //        ServicePXSoapClient client = new ServicePXSoapClient(ServicePXSoapClient.EndpointConfiguration.ServicePXSoap);
 
-                client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
-                client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
+        //        client.ClientCredentials.UserName.UserName = Connected_Services.Tadenor.CredentialsTadenor.Usr;
+        //        client.ClientCredentials.UserName.Password = Connected_Services.Tadenor.CredentialsTadenor.Psw;
                 
-                client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
+        //        client.ClientCredentials.Windows.AllowedImpersonationLevel = System.Security.Principal.TokenImpersonationLevel.Impersonation;
                 
-                //Se almacena la respuesta del ws
-                var response = client.getReloadClassAsync(xml.ToString()).Result;
+        //        //Se almacena la respuesta del ws
+        //        var response = client.getReloadClassAsync(xml.ToString()).Result;
 
-                //// Deserealización
-                //var response_des = XmlToObject(response, typeof(ReloadResponse));
+        //        //// Deserealización
+        //        //var response_des = XmlToObject(response, typeof(ReloadResponse));
 
-                //if (response_des == null)
-                //{
-                //    //return NotFound();
-                //}
+        //        //if (response_des == null)
+        //        //{
+        //        //    //return NotFound();
+        //        //}
 
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex);
+        //    }
+        //}
 
         public static object XmlToObject(string xml, Type objectType)
         {
