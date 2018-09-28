@@ -16,8 +16,16 @@ namespace FromFrancisToLove.Models
         public string Nombre { get; set; }
         public string Tipo { get; set; }
         public int ConfigId { get; set; }
+      
+        public string IDProduct {
+            get;set;
+        }
+        public string Monto
+        {
+            get;set;
+        }
 
-        //[ForeignKey("ConfigId")]
-        //public virtual Conexion_Config User { get; set; }
+        ////[ForeignKey("ConfigId")]
+        ////public virtual Conexion_Config User { get; set; }
     }
 }

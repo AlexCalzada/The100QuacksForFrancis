@@ -19,22 +19,15 @@ namespace FromFrancisToLove.Controllers
     [Route("api/TN")]
     public class TadenorController : Controller
     {
-        
+        public readonly HouseOfCards_Context _context;
+
         [HttpGet]
         public IActionResult Get()
-        {
-            try
-            {
-       
-                return Ok("Skus");
-            }
-            catch (Exception)
-            {
-                return Ok($"Error 500 -- Internal Server Error");
-            }
+        {         
+        return Ok(_context.catalogos_Productos);
         }
 
-        public readonly HouseOfCards_Context _context;
+        
         public TadenorController(HouseOfCards_Context context)
         {
             _context = context;
