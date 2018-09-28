@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Data;
 using System.Collections;
+using FromFrancisToLove.ServiceInfo;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -24,6 +25,7 @@ namespace FromFrancisToLove.Controllers
     {
         private readonly HouseOfCards_Context _context;
         private readonly PxUniversalSoapClient wservice = new PxUniversalSoapClient(PxUniversalSoapClient.EndpointConfiguration.PxUniversalSoap);
+        private ServiceInformation dataInfo = new ServiceInformation();
 
         /*Campos de texto (prueba)*/
         private List<object> objList = new List<object>();
@@ -33,6 +35,44 @@ namespace FromFrancisToLove.Controllers
         public DiestelController(HouseOfCards_Context context)
         {
             _context = context;
+        }
+
+        public void GetServiceData(string _SKU, string Reference)
+        {
+            try
+            {
+                //Se obtiene el proveedor del servicio
+                dataInfo.ProviderId = _context.catalogos_Productos
+                                      .Where(x => x.SKU == _SKU)
+                                      .SingleOrDefault().ConfigId;
+
+                //Se establece el SKU y Referencia recibidos
+                dataInfo.SKU = _SKU;
+                dataInfo.Reference = Reference;
+
+                if (dataInfo.ProviderId > 0)
+                {
+                    //Credenciales
+                    dataInfo.User = _context.conexion_Configs
+                                    .Where(x => x.ConfigID == dataInfo.ProviderId)
+                                    .SingleOrDefault().Usr;
+                    dataInfo.Password = _context.conexion_Configs
+                                        .Where(x => x.ConfigID == dataInfo.ProviderId)
+                                        .SingleOrDefault().Pwd;
+                    //Clave de Encriptacion
+                    dataInfo.EncryptionKey = _context.conexion_Configs
+                                             .Where(x => x.ConfigID == dataInfo.ProviderId)
+                                             .SingleOrDefault().CrypKey;
+                    //Url del servicio
+                    dataInfo.URL = _context.conexion_Configs
+                                   .Where(x => x.ConfigID == dataInfo.ProviderId)
+                                   .SingleOrDefault().Url;
+                }
+            }
+            catch (Exception)
+            {
+                dataInfo.ProviderId = -1;
+            }
         }
 
         // GET: api/Diestel
@@ -47,189 +87,180 @@ namespace FromFrancisToLove.Controllers
         [HttpGet("RequestService")]
         public IActionResult RequestService([FromQuery]string SKU, [FromQuery]string Reference)
         {
-            var credentials = _context.conexion_Configs.Find(1);
-            //var producto = _context.catalogos_Productos.Find(16);
-            
+            /* 
+               Se obtienen los datos del servicio a utilizar
+               de acuerdo al SKU y Referencia recibidos
+            */
+            GetServiceData(SKU, Reference);
 
-            var modulo = new ModuleTDV();
+            string jsonResult = "Default Message";
 
-            string formaPago = TipoPago.Efectivo.AsText();
-
-            cCampo[] campo = new cCampo[10];
-
-            modulo.Grupo = 7;
-            modulo.Cadena = 1;
-            modulo.Tienda = 1;
-            modulo.POS = 1;
-            modulo.Cajero = 1;
-
-            modulo.Usuario = credentials.Usr;
-            modulo.Password = credentials.Pwd;
-
-            //8469760000187
-            //8469761001749
-
-            //modulo.SKU = "8469760000187";
-            modulo.SKU = SKU;
-            var referencia = Reference;
-
-            modulo.EncriptionKey = credentials.CrypKey;
-
-            modulo.TokenValor = "1020304050";
-
-            if (modulo.SKU == string.Empty)
+            if (dataInfo.ProviderId == (int)Provider.Diestel)
             {
-                return BadRequest($"No se ha especificado el servicio a pagar");
-            }
+                cCampo[] campo = new cCampo[10];
 
-            try
-            {
-                campo[0] = new cCampo();
-                campo[0].iTipo = eTipo.NE;
-                campo[0].sCampo = "IDGRUPO";
-                campo[0].sValor = modulo.Grupo;
+                //8469760000187
+                //8469761001749
 
-                campo[1] = new cCampo();
-                campo[1].iTipo = eTipo.NE;
-                campo[1].sCampo = "IDCADENA";
-                campo[1].sValor = modulo.Cadena;
+                //modulo.TokenValor = "1020304050";
 
-                campo[2] = new cCampo();
-                campo[2].iTipo = eTipo.NE;
-                campo[2].sCampo = "IDTIENDA";
-                campo[2].sValor = modulo.Tienda;
-
-                campo[3] = new cCampo();
-                campo[3].iTipo = eTipo.NE;
-                campo[3].sCampo = "IDPOS";
-                campo[3].sValor = modulo.POS;
-
-                campo[4] = new cCampo();
-                campo[4].iTipo = eTipo.NE;
-                campo[4].sCampo = "IDCAJERO";
-                campo[4].sValor = modulo.Cajero;
-
-                campo[5] = new cCampo();
-                campo[5].iTipo = eTipo.FD;
-                campo[5].sCampo = "FECHALOCAL";
-                campo[5].sValor = DateTime.Now.ToString("dd/MM/yyyy");
-
-                campo[6] = new cCampo();
-                campo[6].iTipo = eTipo.HR;
-                campo[6].sCampo = "HORALOCAL";
-                campo[6].sValor = DateTime.Now.ToString("HH:mm:ss");
-
-                campo[7] = new cCampo();
-                campo[7].iTipo = eTipo.NE;
-                campo[7].sCampo = "TRANSACCION";
-                campo[7].sValor = 1;
-
-                campo[8] = new cCampo();
-                campo[8].iTipo = eTipo.AN;
-                campo[8].sCampo = "SKU";
-                campo[8].sValor = modulo.SKU;
-
-                if (referencia != string.Empty)
+                if (dataInfo.SKU == string.Empty)
                 {
-                    campo[9] = new cCampo();
-                    campo[9].sCampo = "REFERENCIA";
-                    campo[9].sValor = Encriptacion.PXEncryptFX(referencia, modulo.EncriptionKey);
-                    campo[9].bEncriptado = true;
-                    campo[9].iTipo = eTipo.AN;
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error dentro de la parametrización. {ex}");
-            }
-
-            try
-            {
-                if (modulo.Usuario == string.Empty || modulo.Password == string.Empty)
-                {
-                    return BadRequest("Imposible conectar al WS porque no hay credenciales");
-                }
-                else
-                {
-                    wservice.ClientCredentials.UserName.UserName = modulo.Usuario;
-                    wservice.ClientCredentials.UserName.Password = modulo.Password;
+                    return BadRequest($"No se ha especificado el servicio a pagar");
                 }
 
-                var response = wservice.InfoAsync(campo).Result;
-
-                if (response.GetUpperBound(0) > 0)
+                try
                 {
-                    // Validacion de respuesta del servicio
-                    int codeResponse = 0;
+                    campo[0] = new cCampo();
+                    campo[0].iTipo = eTipo.NE;
+                    campo[0].sCampo = "IDGRUPO";
+                    campo[0].sValor = dataInfo.Grupo;
 
-                    if (response[0].sCampo == "CODIGORESPUESTA")
+                    campo[1] = new cCampo();
+                    campo[1].iTipo = eTipo.NE;
+                    campo[1].sCampo = "IDCADENA";
+                    campo[1].sValor = dataInfo.Cadena;
+
+                    campo[2] = new cCampo();
+                    campo[2].iTipo = eTipo.NE;
+                    campo[2].sCampo = "IDTIENDA";
+                    campo[2].sValor = dataInfo.Tienda;
+
+                    campo[3] = new cCampo();
+                    campo[3].iTipo = eTipo.NE;
+                    campo[3].sCampo = "IDPOS";
+                    campo[3].sValor = dataInfo.POS;
+
+                    campo[4] = new cCampo();
+                    campo[4].iTipo = eTipo.NE;
+                    campo[4].sCampo = "IDCAJERO";
+                    campo[4].sValor = dataInfo.Cajero;
+
+                    campo[5] = new cCampo();
+                    campo[5].iTipo = eTipo.FD;
+                    campo[5].sCampo = "FECHALOCAL";
+                    campo[5].sValor = DateTime.Now.ToString("dd/MM/yyyy");
+
+                    campo[6] = new cCampo();
+                    campo[6].iTipo = eTipo.HR;
+                    campo[6].sCampo = "HORALOCAL";
+                    campo[6].sValor = DateTime.Now.ToString("HH:mm:ss");
+
+                    campo[7] = new cCampo();
+                    campo[7].iTipo = eTipo.NE;
+                    campo[7].sCampo = "TRANSACCION";
+                    campo[7].sValor = 1;
+
+                    campo[8] = new cCampo();
+                    campo[8].iTipo = eTipo.AN;
+                    campo[8].sCampo = "SKU";
+                    campo[8].sValor = dataInfo.SKU;
+
+                    if (dataInfo.Reference != string.Empty)
                     {
-                        string codeDescription;
-                        codeResponse = (int)response[0].sValor;
+                        campo[9] = new cCampo();
+                        campo[9].sCampo = "REFERENCIA";
+                        campo[9].sValor = Encriptacion.PXEncryptFX(dataInfo.Reference, dataInfo.EncryptionKey);
+                        campo[9].bEncriptado = true;
+                        campo[9].iTipo = eTipo.AN;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest($"Error dentro de la parametrización. {ex}");
+                }
 
-                        if (codeResponse == (int)response[0].sValor)
+                try
+                {
+                    if (dataInfo.User == string.Empty || dataInfo.Password == string.Empty)
+                    {
+                        return BadRequest("Imposible conectar al WS porque no hay credenciales");
+                    }
+                    else
+                    {
+                        wservice.ClientCredentials.UserName.UserName = dataInfo.User;
+                        wservice.ClientCredentials.UserName.Password = dataInfo.Password;
+                    }
+
+                    var response = wservice.InfoAsync(campo).Result;
+
+                    if (response.GetUpperBound(0) > 0)
+                    {
+                        // Validacion de respuesta del servicio
+                        int codeResponse = 0;
+
+                        if (response[0].sCampo == "CODIGORESPUESTA")
                         {
-                            if (response[1].sCampo == "CODIGORESPUESTADESCR")
+                            string codeDescription;
+                            codeResponse = (int)response[0].sValor;
+
+                            if (codeResponse == (int)response[0].sValor)
                             {
-                                codeDescription = response[1].sValor.ToString();
-                                return Ok($"Error {codeResponse}: {codeDescription}");
+                                if (response[1].sCampo == "CODIGORESPUESTADESCR")
+                                {
+                                    codeDescription = response[1].sValor.ToString();
+                                    return Ok($"Error {codeResponse}: {codeDescription}");
+                                }
+                                return StatusCode(503);
                             }
-                            return StatusCode(503);
                         }
                     }
-                }
-                else if (response.GetUpperBound(0) <= 0)
-                {
-                    return StatusCode(204);
-                }
-
-                if (response.GetUpperBound(0) > 0)
-                {
-                    int count = response.Length;
-
-                    // Validacion de la referrencia, confirmacion
-                    if (response[1].iLongitud.ToString() == "10")
+                    else if (response.GetUpperBound(0) <= 0)
                     {
-                        //modulo.Confirmacion = true;
-                        telReference = response[1].sValor.ToString();
-
-                        try
-                        {
-                            modulo.ConfirmacionTel = Encriptacion.PXDecryptFX(telReference, modulo.EncriptionKey);
-                        }
-                        catch (Exception)
-                        {
-                            modulo.ConfirmacionTel = string.Empty;
-                            return NotFound(modulo.ConfirmacionTel.ToString());
-                        }
+                        return StatusCode(204);
                     }
 
-                    var list = new List<object>();
-                    foreach (cCampo wsCampo in response)
+                    if (response.GetUpperBound(0) > 0)
                     {
-                        if (wsCampo.bEncriptado == true)
+                        int count = response.Length;
+
+                        // Validacion de la referrencia, confirmacion
+                        if (response[1].iLongitud.ToString() == "10")
                         {
-                            wsCampo.sValor = Encriptacion.PXDecryptFX(wsCampo.sValor.ToString(), modulo.EncriptionKey);
+                            //modulo.Confirmacion = true;
+                            telReference = response[1].sValor.ToString();
+
+                            try
+                            {
+                                dataInfo.ReferenceConfirm = Encriptacion.PXDecryptFX(dataInfo.Reference, dataInfo.EncryptionKey);
+                            }
+                            catch (Exception)
+                            {
+                                dataInfo.ReferenceConfirm = string.Empty;
+                                return NotFound(dataInfo.ReferenceConfirm.ToString());
+                            }
                         }
-                        list.Add(wsCampo);
+
+                        var list = new List<object>();
+                        foreach (cCampo wsCampo in response)
+                        {
+                            if (wsCampo.bEncriptado == true)
+                            {
+                                wsCampo.sValor = Encriptacion.PXDecryptFX(wsCampo.sValor.ToString(), dataInfo.EncryptionKey);
+                            }
+                            list.Add(wsCampo);
+                        }
+
+                        //(modulo.NoTicket++).ToString();
+                        //txtNoTransaccion = modulo.NoTicket.ToString();
+
+                        var jsonResponse = JsonConvert.SerializeObject(list);
+                        jsonResult = jsonResponse;
                     }
-
-                    (modulo.NoTicket++).ToString();
-                    txtNoTransaccion = modulo.NoTicket.ToString();
-
-                    var jsonResponse = JsonConvert.SerializeObject(list);
-
-                    //return Ok(list);
-
-                    return Ok($"La cantidad de elementos devueltos son: {count} \n\nEl JSON:\n\n{jsonResponse}");
                 }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+
+                //return Ok("Final");
             }
-            catch (Exception ex)
+            else if (dataInfo.ProviderId < 0)
             {
-                return BadRequest(ex);
+                jsonResult = "[{'Error':'No se encontró el proveedor solicitado'}]";
             }
 
-            return Ok("Final");
+            return Ok(jsonResult);
         }
         
         // POST: api/Diestel
@@ -241,55 +272,41 @@ namespace FromFrancisToLove.Controllers
             string telReference;
 
             cCampo [] campo = new cCampo[13];
-
-            var modulo = new ModuleTDV();
-
-            modulo.Grupo = 7;
-            modulo.Cadena = 1;
-            modulo.Tienda = 1;
-            modulo.POS = 1;
-            modulo.Cajero = 1;
-
-            modulo.Usuario = credentials.Usr;
-            modulo.Password = credentials.Pwd;
-
+            //var dataService = new ServiceInformation();
+            
             //8469760000187
             //8469761001749
 
-            modulo.SKU = "8469760000187";
             //modulo.SKU = SKU;
-            var referencia = "8661239618";
 
-            modulo.EncriptionKey = credentials.CrypKey;
-
-            modulo.TokenValor = "1020304050";
+           // modulo.TokenValor = "1020304050";
 
             try
             {
                 campo[0] = new cCampo();
                 campo[0].iTipo = eTipo.NE;
                 campo[0].sCampo = "IDGRUPO";
-                campo[0].sValor = modulo.Grupo;
+                campo[0].sValor = dataInfo.Grupo;
 
                 campo[1] = new cCampo();
                 campo[1].iTipo = eTipo.NE;
                 campo[1].sCampo = "IDCADENA";
-                campo[1].sValor = modulo.Cadena;
+                campo[1].sValor = dataInfo.Cadena;
 
                 campo[2] = new cCampo();
                 campo[2].iTipo = eTipo.NE;
                 campo[2].sCampo = "IDTIENDA";
-                campo[2].sValor = modulo.Tienda;
+                campo[2].sValor = dataInfo.Tienda;
 
                 campo[3] = new cCampo();
                 campo[3].iTipo = eTipo.NE;
                 campo[3].sCampo = "IDPOS";
-                campo[3].sValor = modulo.POS;
+                campo[3].sValor = dataInfo.POS;
 
                 campo[4] = new cCampo();
                 campo[4].iTipo = eTipo.NE;
                 campo[4].sCampo = "IDCAJERO";
-                campo[4].sValor = modulo.Cajero;
+                campo[4].sValor = dataInfo.Cajero;
 
                 campo[5] = new cCampo();
                 campo[5].iTipo = eTipo.FD;
@@ -316,7 +333,7 @@ namespace FromFrancisToLove.Controllers
                 campo[9] = new cCampo();
                 campo[9].iTipo = eTipo.AN;
                 campo[9].sCampo = "SKU";
-                campo[9].sValor = modulo.SKU;
+                campo[9].sValor = dataInfo.SKU;
 
                 campo[10] = new cCampo();
                 campo[10].sCampo = "TIPOPAGO";
@@ -325,9 +342,8 @@ namespace FromFrancisToLove.Controllers
 
                 campo[11] = new cCampo();
                 campo[11].sCampo = "REFERENCIA";
-                campo[11].sValor = "9A4E5ADBAE1E3E0DBA9A83"; //Encriptacion.PXEncryptFX(referencia, modulo.EncriptionKey);
+                campo[11].sValor = Encriptacion.PXEncryptFX(dataInfo.Reference, dataInfo.EncryptionKey);
                 campo[11].bEncriptado = true;
-                //campo[11].iTipo = eTipo.AN;
 
                 campo[12] = new cCampo();
                 campo[12].sCampo = "MONTO";
@@ -336,14 +352,14 @@ namespace FromFrancisToLove.Controllers
 
                 try
                 {
-                    if (modulo.Usuario == string.Empty || modulo.Password == string.Empty)
+                    if (dataInfo.User == string.Empty || dataInfo.Password == string.Empty)
                     {
                         return BadRequest("Imposible conectar al WS porque no hay credenciales");
                     }
                     else
                     {
-                        wservice.ClientCredentials.UserName.UserName = modulo.Usuario;
-                        wservice.ClientCredentials.UserName.Password = modulo.Password;
+                        wservice.ClientCredentials.UserName.UserName = dataInfo.User;
+                        wservice.ClientCredentials.UserName.Password = dataInfo.Password;
                     }
 
                     var response = wservice.EjecutaAsync(campo).Result;
@@ -369,26 +385,22 @@ namespace FromFrancisToLove.Controllers
                             }
                         }
                     }
-                    else if (response.GetUpperBound(0) <= 0)
-                    {
-                        return StatusCode(204);
-                    }
 
                     if (response.GetUpperBound(0) > 0)
                     {
                         // Validacion de la referrencia, confirmacion
                         if (response[1].iLongitud.ToString() == "10")
                         {
-                            modulo.Confirmacion = true;
+                            //modulo.Confirmacion = true;
                             telReference = response[1].sValor.ToString();
 
                             try
                             {
-                                modulo.ConfirmacionTel = Encriptacion.PXDecryptFX(telReference, modulo.EncriptionKey);
+                                dataInfo.ReferenceConfirm = Encriptacion.PXDecryptFX(telReference, dataInfo.EncryptionKey);
                             }
                             catch (Exception)
                             {
-                                return NotFound(modulo.ConfirmacionTel.ToString());
+                                return NotFound(dataInfo.ReferenceConfirm.ToString());
                             }
                         }
 

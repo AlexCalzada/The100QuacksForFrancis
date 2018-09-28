@@ -8,8 +8,8 @@ namespace FromFrancisToLove.Diestel
 {
     public class TXDiestel
     {
-        private readonly ArrayList alRequest;
-        private readonly ArrayList alResponse;
+        private  ArrayList alRequest = new ArrayList();
+        private  ArrayList alResponse = new ArrayList();
         private string SKU;
 
         public void Init()
