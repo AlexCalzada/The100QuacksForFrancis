@@ -28,6 +28,8 @@ namespace FromFrancisToLove.ServiceInfo
         public string Reference { get; set; }
         public string ReferenceConfirm { get; set; }
 
+        //Temporales (Solo de prueba)
+        public string TelReference { get; set; }
     }
 
     public enum Provider
