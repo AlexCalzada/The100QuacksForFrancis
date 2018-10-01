@@ -44,7 +44,7 @@ namespace FromFrancisToLove.Controllers
                 //Se obtiene el proveedor del servicio
                 dataInfo.ProviderId = _context.catalogos_Productos
                                       .Where(x => x.SKU == _SKU)
-                                      .SingleOrDefault().ConfigId;
+                                      .SingleOrDefault().CONFIGID;
 
                 //Se establece el SKU y Referencia recibidos
                 dataInfo.SKU = _SKU;
