@@ -13,10 +13,8 @@ namespace FromFrancisToLove.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string SKU { get; set; }
-        public string Nombre { get; set; }
-        public string Tipo { get; set; }
-        public int ConfigId { get; set; }
-      
+        public int CONFIGID { get; set; }
+    
         public string IDProduct {
             get;set;
         }
@@ -25,7 +23,6 @@ namespace FromFrancisToLove.Models
             get;set;
         }
 
-        ////[ForeignKey("ConfigId")]
-        ////public virtual Conexion_Config User { get; set; }
+        public string Marca { get; set; }
     }
 }

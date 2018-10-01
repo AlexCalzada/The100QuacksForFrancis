@@ -20,31 +20,40 @@ namespace FromFrancisToLove.Controllers
     public class TadenorController : Controller
     {
         public readonly HouseOfCards_Context _context;
-
         [HttpGet]
         public IActionResult Get()
-        {         
-        return Ok(_context.catalogos_Productos);
+        {
+            return Ok(_context.catalogos_Productos);
         }
-
-        
         public TadenorController(HouseOfCards_Context context)
         {
             _context = context;
         }
+        [HttpPost("Recarga_Servicio")] 
 
-        [HttpPost("Recarga_Celular")]
-        public IActionResult _TN(ReloadRequest xmlData)
+        public IActionResult TN_Service(MyRelReq xmlData)
         {
-            if (ReloadValidation(xmlData) != null) // Se valida los Campos
+            
+            var service = "getReloadClass";
+            var response = "ReloadResponse";
+            //Determinamos el tipo de servicio Saldo o Datos
+            //catalogos_Producto
+            var producto = _context.catalogos_Productos.First(a => a.SKU == xmlData.SKU && a.CONFIGID == 2);
+            if (producto.IDProduct != "")
             {
-                return Content(ReloadValidation(xmlData));
+              service = "getReloadData";
+              response = "DataResponse";
             }
-            var sXML = GetXMLs(xmlData);// Se Genera <XMLs> como String Escapado 
-            var item = _context.conexion_Configs.Find(2);
 
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getReloadClass", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getReloadClass", sXML);
+
+            var sXML = GetXMLs(xmlData, service);// Se Genera <XMLs> como String Escapado 
+
+           
+            
+            var Credentials = _context.conexion_Configs.Find(2);
+
+            HttpWebRequest webRequest = CreateWebRequest(Credentials.Url, "http://www.pagoexpress.com.mx/ServicePX/" + service, Credentials.Usr, Credentials.Pwd);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope(service, sXML);
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
             asyncResult.AsyncWaitHandle.WaitOne();
@@ -53,21 +62,21 @@ namespace FromFrancisToLove.Controllers
             try
             {
                 WebResponse webResponse = webRequest.EndGetResponse(asyncResult);
-
                 StreamReader rd = new StreamReader(webResponse.GetResponseStream());
                 soapResult = rd.ReadToEnd();
             }
             catch (Exception) { throw; }
 
+            MyRelReq ResponseXml = new MyRelReq();
+            ResponseXml = GetRespuesta(soapResult, service + "Result", response);
 
-            ReloadResponse ResponseXml = new ReloadResponse();
-            ResponseXml = GetResponse(soapResult, "getReloadClassResult");
-
+            //Null 0 o 16 
             if (ResponseXml.ResponseCode == null || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
             {
                 ResponseXml.TC = xmlData.TC;
                 ResponseXml.SKU = xmlData.SKU;
-                string x = EnumPrueba.TN_Cod(CR_TN(ResponseXml));
+                ResponseXml.ID_Product = xmlData.ID_Product;
+                string x = EnumPrueba.TN_Cod(CR_TN_SERV(ResponseXml));
                 if (x != "")
                 {
                     return Content(x);
@@ -78,160 +87,76 @@ namespace FromFrancisToLove.Controllers
                 return Content(ResponseXml.DescripcionCode);
             }
 
-            string Ticket =  
-            "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
-            "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
-            "MONTO:            " + "100" + Environment.NewLine +//Se consulta el SKU para traer el monto!!!!!!!!!!!!!
-            "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
-            Environment.NewLine +
-            "TELCEL" + Environment.NewLine +
-            "ESTIMADO CLIENTE EN CASO DE PRESENTARSE ALGUN PROBLEMA CON SU TIEMPO AIRE FAVOR DE" + Environment.NewLine +
-            "COMUNICARSE A ATENCION A CLIENTES TELCEL *264 DESDE SU TELCEL O DESDE EL INTERIOR DE LA REPUBLICA" + Environment.NewLine +
-            "AL 01800-710-5687" + Environment.NewLine +
-            Environment.NewLine +
-            "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
-            "TIENDA:" + Environment.NewLine +
-            ResponseXml.ResponseCode + ":" +
-            ResponseXml.DescripcionCode;
-
-                return Content(Ticket);
-            
-            
-        }
-
-        public string CR_TN(ReloadResponse xmlReloadResponse)
-        {
-            QueryRequest xmlQueryRequest = new QueryRequest();
-
-            xmlQueryRequest.PhoneNumber = xmlReloadResponse.PhoneNumber;
-            xmlQueryRequest.SKU = xmlReloadResponse.SKU;
-            xmlQueryRequest.TC = xmlReloadResponse.TC;
-            xmlQueryRequest.TransNumber = xmlReloadResponse.TransNumber;
-
-            var sXML = GetXMLs(xmlQueryRequest);
-
-            var item = _context.conexion_Configs.Find(2);
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getQueryClass", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getQueryClass", sXML);
-
-            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-            asyncResult.AsyncWaitHandle.WaitOne();
-            string soapResult;
-            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-            {
-                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                {
-                    soapResult = rd.ReadToEnd();
-                }
-            }
-
-            XmlDocument xmldoc = new XmlDocument();
-            xmldoc.LoadXml(soapResult);
-            XmlNodeList nodeList = xmldoc.GetElementsByTagName("getQueryClassResult");
-
-            string xml="";
-            foreach (XmlNode node in nodeList)
-            {
-                xml = node.InnerText;
-            }
-            xmldoc.LoadXml(Des_ScapeXML(xml));
-            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
-
-            string x = string.Empty;
-            foreach (XmlNode node in nodeList)
-            {
-                x = node.InnerText;
-            }
-            return x;    
-        }
-
-
-
-        [HttpPost("Recarga_Datos")]
-        public IActionResult RD_TN(DataRequest xmlData)
-        {
-            if (DataValidation(xmlData) != null) // Se valida los Campos
-            {
-                return Content(DataValidation(xmlData));
-            }
-            var sXML = GetXMLs(xmlData);// Se Genera <XMLs> como String Escapado 
-            var item = _context.conexion_Configs.Find(2);
-
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getReloadData", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getReloadData", sXML);
-            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-            asyncResult.AsyncWaitHandle.WaitOne();
-            string soapResult;
-
+            //Tiket
             try
             {
-                WebResponse webResponse = webRequest.EndGetResponse(asyncResult);
 
-                StreamReader rd = new StreamReader(webResponse.GetResponseStream());
-                soapResult = rd.ReadToEnd();
+                string Ticket =
+           "///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
+           "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
+           "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+           "MONTO:            " + producto.Monto + Environment.NewLine +//Se consulta el SKU para traer el monto!!!!!!!!!!!!!
+           "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
+           "///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
+           "TELCEL" + Environment.NewLine +
+           "ESTIMADO CLIENTE EN CASO DE PRESENTARSE ALGUN PROBLEMA CON SU TIEMPO AIRE FAVOR DE" + Environment.NewLine +
+           "COMUNICARSE A ATENCION A CLIENTES TELCEL *264 DESDE SU TELCEL O DESDE EL INTERIOR DE LA REPUBLICA" + Environment.NewLine +
+           "AL 01800-710-5687" + Environment.NewLine +
+           "///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
+           "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
+           "TIENDA:" + Environment.NewLine +
+           ResponseXml.ResponseCode + ":" +
+           ResponseXml.DescripcionCode + Environment.NewLine +
+           "///////////////////////////////////////////////////////////////////////////////////////////////////////////";
+
+
+
+                return Content(Ticket);
+
             }
-            catch (Exception) { throw; }
-
-
-            ReloadResponse ResponseXml = new ReloadResponse();
-            ResponseXml = GetDataResponse(soapResult, "getReloadDataResult");
-
-            if (ResponseXml.ResponseCode == null || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+            catch (Exception)
             {
-                ResponseXml.TC = xmlData.TC;
-                ResponseXml.SKU = xmlData.SKU;
-                ResponseXml.ID_Product = xmlData.ID_Product;
-                string x = EnumPrueba.TN_Cod(CD_TN(ResponseXml));
-                if (x != "")
-                {
-                    return Content(x);
-                }
+
+                throw;
             }
-            //if (ResponseXml.ResponseCode != "0")
-            //{
-            //    return Content(ResponseXml.DescripcionCode);
-            //}
-
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(ResponseXml.ToString());
-
-            string json = JsonConvert.SerializeXmlNode(doc);
-
-            return Content(json);
         }
-
-        public string CD_TN(ReloadResponse xmlReloadResponse)
+        public string CR_TN_SERV(MyRelReq xmlReloadResponse)
         {
-            QueryRequest xmlQueryRequest = new QueryRequest();
+            MyRelReq xmlQueryRequest = new MyRelReq();
 
             xmlQueryRequest.PhoneNumber = xmlReloadResponse.PhoneNumber;
             xmlQueryRequest.SKU = xmlReloadResponse.SKU;
             xmlQueryRequest.TC = xmlReloadResponse.TC;
             xmlQueryRequest.TransNumber = xmlReloadResponse.TransNumber;
 
-            var sXML = GetXMLs(xmlQueryRequest);
+            var servicio = "getQueryClass";
+           
+            if (xmlReloadResponse.ID_Product!="")
+            {
+                xmlQueryRequest.ID_Product = xmlReloadResponse.ID_Product;
+                servicio = "getQueryDatClass";
+            }
+          
+
+            var sXML = GetXMLs(xmlQueryRequest, servicio);
 
             var item = _context.conexion_Configs.Find(2);
-            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/getQueryClass", item.Usr, item.Pwd);
-            XmlDocument soapEnvelopeXml = CreateSoapEnvelope("getQueryClass", sXML);
+            HttpWebRequest webRequest = CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/" + servicio, item.Usr, item.Pwd);
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope(servicio, sXML);
 
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
             asyncResult.AsyncWaitHandle.WaitOne();
             string soapResult;
-            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-            {
-                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                {
-                    soapResult = rd.ReadToEnd();
-                }
-            }
+
+            WebResponse webResponse = webRequest.EndGetResponse(asyncResult);
+            StreamReader rd = new StreamReader(webResponse.GetResponseStream());
+            soapResult = rd.ReadToEnd();
+
 
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.LoadXml(soapResult);
-            XmlNodeList nodeList = xmldoc.GetElementsByTagName("getQueryClassResult");
+            XmlNodeList nodeList = xmldoc.GetElementsByTagName(servicio + "Result");
 
             string xml = "";
             foreach (XmlNode node in nodeList)
@@ -249,11 +174,8 @@ namespace FromFrancisToLove.Controllers
             return x;
         }
 
-
-
-
         ///////////////////////////////////////////////////////////////////////////////////////////////////////
-        public string GetXMLs(object xmlData)
+        public string GetXMLs(object xmlData, string x)
         {
             XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
             var settings = new XmlWriterSettings();
@@ -262,11 +184,11 @@ namespace FromFrancisToLove.Controllers
             StringWriter sw = new StringWriter();
             XmlWriter writer = XmlWriter.Create(sw, settings);
             xmls.Serialize(writer, xmlData);
-
-            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" +sw.ToString());
+            string y = sw.ToString().Replace("MyRelReq", x);
+            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" + y);
         }
 
-        public ReloadResponse GetResponse(string xml,string path)
+        public MyRelReq GetRespuesta(string xml, string path, string response)
         {
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.LoadXml(xml);
@@ -276,80 +198,25 @@ namespace FromFrancisToLove.Controllers
             {
                 xml = node.InnerText;
             }
+            xml = xml.Replace(response, "MyRelReq");
             xmldoc.LoadXml(Des_ScapeXML(xml));
             nodeList = xmldoc.GetElementsByTagName("ResponseCode");
 
-            XmlSerializer xmls = new XmlSerializer(typeof(ReloadResponse));
+            XmlSerializer xmls = new XmlSerializer(typeof(MyRelReq));
 
             byte[] byteArray = Encoding.UTF8.GetBytes(xml);
             MemoryStream stream = new MemoryStream(byteArray);
 
             StreamReader sr = new StreamReader(stream);
-            ReloadResponse rr = (ReloadResponse)xmls.Deserialize(sr);
+            MyRelReq rr = (MyRelReq)xmls.Deserialize(sr);
             return rr;
         }
 
-        public DataResponse GetDataResponse(string xml, string path)
-        {
-            XmlDocument xmldoc = new XmlDocument();
-            xmldoc.LoadXml(xml);
-            XmlNodeList nodeList = xmldoc.GetElementsByTagName(path);
-
-            foreach (XmlNode node in nodeList)
-            {
-                xml = node.InnerText;
-            }
-            xmldoc.LoadXml(Des_ScapeXML(xml));
-            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
-
-            XmlSerializer xmls = new XmlSerializer(typeof(DataResponse));
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(xml);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            StreamReader sr = new StreamReader(stream);
-            DataResponse rr = (DataResponse)xmls.Deserialize(sr);
-            return rr;
-        }
-
-        public string ReloadValidation(ReloadRequest xml)
+        public string ReloadValidation(MyRelReq xml)
         {
             int v;
 
-            if (xml.SKU.ToString().Length > 13) { return "SKU lenght es mayor a 13"; }
-
-
             if (xml.PhoneNumber.ToString().Length > 10) { return "PhoneNumber lenght es mayor a 10"; }
-
-
-            if (!(int.TryParse(xml.TransNumber, out v))) { return "TransNumber  No es Entero"; }
-            if (xml.TransNumber.ToString().Length > 5) { return "TransNumber lenght es mayor a 5"; }
-
-
-            if (!(int.TryParse(xml.TC, out v))) { return "TC  No es Entero"; }
-            if (xml.TC.ToString().Length > 1) { return "TC lenght es mayor a 1"; }
-
-            return null;
-        }
-
-        public string DataValidation(DataRequest xml)
-        {
-            int v;
-            if (xml.ID_Product.ToString().Length > 6) { return "Caracteres de id Porducto es superior a 6 "; }
-
-
-            if (xml.SKU.ToString().Length > 13) { return "SKU lenght es mayor a 13"; }
-
-
-            if (xml.PhoneNumber.ToString().Length > 10) { return "PhoneNumber lenght es mayor a 10"; }
-
-
-            if (!(int.TryParse(xml.TransNumber, out v))) { return "TransNumber  No es Entero"; }
-            if (xml.TransNumber.ToString().Length > 5) { return "TransNumber lenght es mayor a 5"; }
-
-
-            if (!(int.TryParse(xml.TC, out v))) { return "TC  No es Entero"; }
-            if (xml.TC.ToString().Length > 1) { return "TC lenght es mayor a 1"; }
 
             return null;
         }
@@ -372,20 +239,20 @@ namespace FromFrancisToLove.Controllers
 
         public static string Des_ScapeXML(string sXML)
         {
-            sXML = sXML.Replace("&amp;", "&").Replace( "&lt;", "<").Replace( "&gt;",">").Replace( "&quot;", "\"").Replace("&apos;", "'");
+            sXML = sXML.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&quot;", "\"").Replace("&apos;", "'");
             return sXML;
         }
 
-        private static XmlDocument CreateSoapEnvelope(string servicio,string sXML)
+        private static XmlDocument CreateSoapEnvelope(string servicio, string sXML)
         {
-           string xml=
-            @"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">" +
-            "<soap:Body>" +
-            "<" + servicio + @" xmlns=""http://www.pagoexpress.com.mx/ServicePX"">" +
-            @"<sXML>" + sXML + "</sXML>" +
-            "</" + servicio + ">" +
-            "</soap:Body>" +
-            "</soap:Envelope>";
+            string xml =
+             @"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">" +
+             "<soap:Body>" +
+             "<" + servicio + @" xmlns=""http://www.pagoexpress.com.mx/ServicePX"">" +
+             @"<sXML>" + sXML + "</sXML>" +
+             "</" + servicio + ">" +
+             "</soap:Body>" +
+             "</soap:Envelope>";
 
             XmlDocument soapEnvelopeDocument = new XmlDocument();
             soapEnvelopeDocument.LoadXml(xml);
@@ -395,14 +262,12 @@ namespace FromFrancisToLove.Controllers
         private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
         {
             Stream stream = webRequest.GetRequestStream();
-            
-                soapEnvelopeXml.Save(stream);
-            
+
+            soapEnvelopeXml.Save(stream);
+
         }
 
     }
-
-
     public static class EnumPrueba
     {
         public static string TN_Cod(string x)
@@ -410,20 +275,25 @@ namespace FromFrancisToLove.Controllers
             switch (Int32.Parse(x))
             {
 
-                case 2:  return "NO FUE POSIBLE REGISTRAR LA TERMINALS";
-                case 5:  return "SWITCH NO DISPONIBLE";
+                case 2: return "NO FUE POSIBLE REGISTRAR LA TERMINALS";
+                case 5: return "SWITCH NO DISPONIBLE";
                 case 6: case 70: return "Servicio no disponible";
-                case 8:  return "SERVIDOR DE CARRIER ABAJO, INTENTE MAS TARDE";
+                case 8: return "SERVIDOR DE CARRIER ABAJO, INTENTE MAS TARDE";
                 case 19: return "EL NUMERO DE TRANSACCION DE LA CAJA ES INVALIDO, DEBE SER MAYOR QUE 0";
                 case 30: return "ERROR DE FORMATO EN EL MENSAJE";
                 case 34: return "NUMERO DE TELÉFONO INVALIDO";
                 case 35: return "Su terminal ha sido bloqueada por exceder el monto permitido";
-                case 66:  case 67: return "EN ESTOS MOMENTOS NO CUENTAS CON CREDITO DISPONIBLE";
+                case 66: case 67: return "EN ESTOS MOMENTOS NO CUENTAS CON CREDITO DISPONIBLE";
                 case 71: return "NO HAY RESPUESTA DEL SWITCH";
                 case 72: return "NO HAY RESPUESTA DEL CARRIER";
                 case 87: return "TELEFONO NO SUCEPTIBLE DE ABONO";
                 case 88: return "MONTO INVALIDO";
-                case 65: case 91: case 92: case 93: case 96:  case 98: 
+                case 65:
+                case 91:
+                case 92:
+                case 93:
+                case 96:
+                case 98:
                 case 99: return "MANTENIMIENTO EN PROGRESO, INTENTE MAS TARDE";
             }
             return "";
