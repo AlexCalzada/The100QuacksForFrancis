@@ -13,6 +13,7 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using System.Threading;
 
 
 namespace FromFrancisToLove.Controllers
@@ -43,7 +44,7 @@ namespace FromFrancisToLove.Controllers
 
         [HttpPost("Recarga_Servicio")] 
         public IActionResult TN_Service(MyRelReq xmlData)
-        {           
+        {
             var service = "getReloadClass";
             var response = "ReloadResponse";
             //Determinamos el tipo de servicio Saldo o Datos
@@ -56,14 +57,53 @@ namespace FromFrancisToLove.Controllers
             }
             MyRelReq ResponseXml = new MyRelReq();
             //  ResponseXml = TNClass.GetRespuesta(soapResult, service + "Result", response);
-            ResponseXml = TNClass.GetRespuesta(GetResponse(service,xmlData), service + "Result", response);
-            //Null 0 o 16 
-            if (ResponseXml.ResponseCode == null || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+           
+            var task = Task.Run(() =>
             {
-                ResponseXml.TC = xmlData.TC;
-                ResponseXml.SKU = xmlData.SKU;
-                ResponseXml.ID_Product = xmlData.ID_Product;
-                xmlReloadResponse = ResponseXml;
+                return GetResponse(service, xmlData);
+            });
+
+
+            try
+            {
+                var success = task.Wait(50000);
+                if (!success)
+                {
+                  //  throw new TimeoutException();
+                    return Content("Lo sentimos El servicio tardo mas de los esperado :(");
+                }
+                else
+                {
+                    ResponseXml = TNClass.GetRespuesta(task.Result, service + "Result", response);
+                }
+            }
+            catch (AggregateException ex)
+            {
+                throw ex.InnerException;
+            }
+
+            //if (task.Wait(TimeSpan.FromMilliseconds(50000)))
+            //{
+            //  // ejecuto tarea en el tiempo establecido
+            // //   return Content(task.Result);
+            //    ResponseXml = TNClass.GetRespuesta(task.Result, service + "Result", response);
+
+            //}
+            //else
+            //{
+            //    //no lo ejecuto en tiempo establecido
+            //   // throw new TimeoutException("The function has taken longer than the maximum time allowed.");
+            //}
+
+
+            //Null 0 o 16 
+            if ( ResponseXml.ResponseCode == "0" || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+            {
+         
+                //ResponseXml.TC = xmlData.TC;
+                //ResponseXml.SKU = xmlData.SKU;
+                //ResponseXml.ID_Product = xmlData.ID_Product;
+                xmlReloadResponse = xmlData;
                 string x = EnumPrueba.TN_Cod(CR_TN_SERV(/*ResponseXml*/));
                 if (x != "")
                 {
@@ -78,20 +118,10 @@ namespace FromFrancisToLove.Controllers
             //Tiket
             string Ticket =
 "///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
-"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +
-"NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
-"MONTO:            " + producto.Monto + Environment.NewLine +//Se consulta el SKU para traer el monto!!!!!!!!!!!!!
-"TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
-"///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
-"TELCEL" + Environment.NewLine +
-"ESTIMADO CLIENTE EN CASO DE PRESENTARSE ALGUN PROBLEMA CON SU TIEMPO AIRE FAVOR DE" + Environment.NewLine +
-"COMUNICARSE A ATENCION A CLIENTES TELCEL *264 DESDE SU TELCEL O DESDE EL INTERIOR DE LA REPUBLICA" + Environment.NewLine +
-"AL 01800-710-5687" + Environment.NewLine +
-"///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
+"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +"NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+"MONTO:            " + producto.Monto + Environment.NewLine +"TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
 "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
-"TIENDA:" + Environment.NewLine +
-ResponseXml.ResponseCode + ":" +
-ResponseXml.DescripcionCode + Environment.NewLine +
+"TIENDA:" + Environment.NewLine +ResponseXml.ResponseCode + ":" +ResponseXml.DescripcionCode + Environment.NewLine +
 "///////////////////////////////////////////////////////////////////////////////////////////////////////////";
             return Content(Ticket);
         }
@@ -143,13 +173,29 @@ ResponseXml.DescripcionCode + Environment.NewLine +
             var sXML = TNClass.GetXMLs(xmlQueryRequest, servicio);
             var item = _context.conexion_Configs.Find(2);
             HttpWebRequest webRequest = TNClass.CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/" + servicio, item.Usr, item.Pwd);
+    
             XmlDocument soapEnvelopeXml = TNClass.CreateSoapEnvelope(servicio, sXML);
             TNClass.InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
             asyncResult.AsyncWaitHandle.WaitOne();
-            WebResponse webResponse = webRequest.EndGetResponse(asyncResult);
-            StreamReader rd = new StreamReader(webResponse.GetResponseStream());
-             return rd.ReadToEnd();
+            string soapResult="";
+
+
+
+
+
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+                {
+                    using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                    {
+                        soapResult = rd.ReadToEnd();
+
+                    }
+                  //  Thread.Sleep(70000);
+                }
+     
+            return soapResult;
         }
     }
 }

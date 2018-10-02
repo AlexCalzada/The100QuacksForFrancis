@@ -105,9 +105,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
         public  void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
         {
             Stream stream = webRequest.GetRequestStream();
-
             soapEnvelopeXml.Save(stream);
-
         }
 
     }
