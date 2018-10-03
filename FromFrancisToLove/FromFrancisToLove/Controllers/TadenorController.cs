@@ -146,7 +146,7 @@ namespace FromFrancisToLove.Controllers
                 x = node.InnerText;
             }
 
-            InsertSuccessfulTransaction(2, xmlData.SKU, xmlData.PhoneNumber, Decimal.Parse(xmlData.Monto));
+           // InsertSuccessfulTransaction(2, xmlData.SKU, xmlData.PhoneNumber, Decimal.Parse(xmlData.Monto));
 
             return x;
         }
