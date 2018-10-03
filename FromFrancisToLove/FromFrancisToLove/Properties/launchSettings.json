@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/TN",
+      "launchUrl": "api/Services",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,9 +19,9 @@
     "FromFrancisToLove": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/TN",
+      "launchUrl": "api/Services",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+      "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:14290/"
     }

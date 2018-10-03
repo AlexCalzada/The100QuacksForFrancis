@@ -15,5 +15,6 @@ namespace FromFrancisToLove.Data
         public DbSet<Conexion_Config> conexion_Configs { get; set; }
         public DbSet<Tienda_Config> tienda_Configs { get; set; }
         public DbSet<Catalogos_Producto> catalogos_Productos { get; set; }
+        public DbSet<Transaccion> transaccions { get; set; }
     }
 }

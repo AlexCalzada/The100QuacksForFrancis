@@ -14,7 +14,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using System.Threading;
-
+using FromFrancisToLove.Models;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -64,9 +64,10 @@ namespace FromFrancisToLove.Controllers
             MyRelReq ResponseXml = new MyRelReq();
             try
             {
-                var success = task.Wait(10000);
+                var success = task.Wait(50000);
                 if (!success)
                 {
+                    
                     string codeResponse = CR_TN_SERV(xmlData);
                     if (codeResponse != "")
                     {
@@ -97,6 +98,8 @@ namespace FromFrancisToLove.Controllers
             {
                 return Content(ResponseXml.DescripcionCode);
             }
+           
+            InsertSuccessfulTransaction(2,ResponseXml.SKU,ResponseXml.PhoneNumber, Decimal.Parse(ResponseXml.Monto));
             //Tiket
             string Ticket =
 "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
@@ -111,23 +114,21 @@ namespace FromFrancisToLove.Controllers
         public string CR_TN_SERV(MyRelReq xmlData)
         {
             MyRelReq xmlRequest = new MyRelReq();
+            var servicio = "getQueryClass";
+
+            //Si existe producto desde la BD lo agrega
+            if (xmlData.ID_Product != "")
+            {
+                xmlRequest.ID_Product = xmlData.ID_Product;
+                servicio = "getQueryDatClass";
+            }
             xmlRequest.PhoneNumber = xmlData.ID_Product;
             xmlRequest.PhoneNumber = xmlData.PhoneNumber;
             xmlRequest.SKU = xmlData.SKU;
             xmlRequest.TC = xmlData.TC;
             xmlRequest.TransNumber = xmlData.TransNumber;
 
-            var servicio = "getQueryClass";
-           
-            //Si existe producto desde la BD lo agrega
-            if (xmlData.ID_Product!="")
-            {
-                xmlRequest.ID_Product = xmlData.ID_Product;
-                servicio = "getQueryDatClass";
-            }
-
             XmlDocument xmldoc = new XmlDocument();
-          //  var xmla =GetResponse( servicio, xmlQueryRequest);
             xmldoc.LoadXml(GetResponse(servicio,xmlRequest));
             XmlNodeList nodeList = xmldoc.GetElementsByTagName(servicio + "Result");
 
@@ -144,6 +145,9 @@ namespace FromFrancisToLove.Controllers
             {
                 x = node.InnerText;
             }
+
+            InsertSuccessfulTransaction(2, xmlData.SKU, xmlData.PhoneNumber, Decimal.Parse(xmlData.Monto));
+
             return x;
         }
 
@@ -164,9 +168,32 @@ namespace FromFrancisToLove.Controllers
                     {
                         soapResult = rd.ReadToEnd();
                     }
-                    Thread.Sleep(20000);
+                  //  Thread.Sleep(20000);
                 }
             return soapResult;
         }
+
+        protected void InsertSuccessfulTransaction(int Proveedor, string SKU, string Reference, decimal Amount, decimal Comision=0, long NTransaction=0, long NAutoritation=0)
+        {
+            var Transaction = _context.Set<Transaccion>();
+            Transaction.Add(
+                              new Transaccion
+                              {
+
+                                  FechaTx = DateTime.Now,
+                                  Sku = SKU,
+                                  NAutorizacion = NAutoritation,
+                                  Referencia = Reference,
+                                  Monto = Amount,
+                                  Comision = Comision,
+                                  ConfigID = Proveedor,
+                                  TiendaID = 1,
+                                  CajaID = 1,
+                                  NoTransaccion = NTransaction
+                              }
+                           );
+            _context.SaveChanges();
+        }
+
     }
 }

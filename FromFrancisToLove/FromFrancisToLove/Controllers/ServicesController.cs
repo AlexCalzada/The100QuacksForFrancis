@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Diestel;
 using FromFrancisToLove.Data;
+using FromFrancisToLove.Models;
 using FromFrancisToLove.Requests.ModuleDiestel;
 using FromFrancisToLove.ServiceInfo;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,7 @@ namespace FromFrancisToLove.Controllers
         {
             _context = context;
         }
+
 
         public void GetServiceData(string _SKU, string Reference)
         {
@@ -269,6 +271,29 @@ namespace FromFrancisToLove.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+
+
+        protected void InsertSuccessfulTransaction(string SKU, long NAutoritation, string Reference, decimal Amount, decimal Comision, long NTransaction)
+        {
+            var Transaction = _context.Set<Transaccion>();
+            Transaction.Add(
+                              new Transaccion
+                              {
+
+                                  FechaTx = DateTime.Now,
+                                  Sku = SKU,
+                                  NAutorizacion = NAutoritation,
+                                  Referencia = Reference,
+                                  Monto = Amount,
+                                  Comision = Comision,
+                                  ConfigID = 1,
+                                  TiendaID = dataInfo.Tienda,
+                                  CajaID = dataInfo.Cajero,
+                                  NoTransaccion = NTransaction
+                              }
+                           );
+            _context.SaveChanges();
         }
     }
 }
