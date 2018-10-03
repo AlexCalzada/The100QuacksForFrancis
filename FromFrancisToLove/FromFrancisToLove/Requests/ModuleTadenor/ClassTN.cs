@@ -17,8 +17,6 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
 {
     public class ClassTN
     {
-
-
         public string GetXMLs(object xmlData, string x)
         {
             XmlSerializer xmls = new XmlSerializer(xmlData.GetType());

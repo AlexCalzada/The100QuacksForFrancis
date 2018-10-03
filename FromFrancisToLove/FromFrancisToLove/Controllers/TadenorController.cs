@@ -23,14 +23,14 @@ namespace FromFrancisToLove.Controllers
     public class TadenorController : Controller 
     {
         ClassTN TNClass = new ClassTN();
-        MyRelReq xmlReloadResponse = new MyRelReq();
+       // MyRelReq xmlReloadResponse = new MyRelReq();
         public readonly HouseOfCards_Context _context;
 
         public IActionResult GetDefault()
         {
-            return Ok("");
+            return Content("");
         }
-        [HttpGet("Obtener_Skus")]
+        [HttpGet("Skus_TN")]
         public IActionResult Get()
         {
             //Regresa los SKUS
@@ -42,7 +42,7 @@ namespace FromFrancisToLove.Controllers
             _context = context;
         }
 
-        [HttpPost("Recarga_Servicio")] 
+        [HttpPost("Recarga_TN")] 
         public IActionResult TN_Service(MyRelReq xmlData)
         {
             var service = "getReloadClass";
@@ -54,23 +54,24 @@ namespace FromFrancisToLove.Controllers
             {
               service = "getReloadData";
               response = "DataResponse";
+              xmlData.ID_Product = producto.IDProduct;
             }
-            MyRelReq ResponseXml = new MyRelReq();
+           
             //  ResponseXml = TNClass.GetRespuesta(soapResult, service + "Result", response);
            
-            var task = Task.Run(() =>
-            {
-                return GetResponse(service, xmlData);
-            });
+            var task = Task.Run(() =>{return GetResponse(service, xmlData);});
 
-
+            MyRelReq ResponseXml = new MyRelReq();
             try
             {
-                var success = task.Wait(50000);
+                var success = task.Wait(10000);
                 if (!success)
                 {
-                  //  throw new TimeoutException();
-                    return Content("Lo sentimos El servicio tardo mas de los esperado :(");
+                    string codeResponse = CR_TN_SERV(xmlData);
+                    if (codeResponse != "")
+                    {
+                        return Content("Lo sentimos El servicio tardo mas de los esperado :( "+codeResponse+":"+ EnumPrueba.TN_Cod(codeResponse));
+                    }
                 }
                 else
                 {
@@ -82,32 +83,13 @@ namespace FromFrancisToLove.Controllers
                 throw ex.InnerException;
             }
 
-            //if (task.Wait(TimeSpan.FromMilliseconds(50000)))
-            //{
-            //  // ejecuto tarea en el tiempo establecido
-            // //   return Content(task.Result);
-            //    ResponseXml = TNClass.GetRespuesta(task.Result, service + "Result", response);
-
-            //}
-            //else
-            //{
-            //    //no lo ejecuto en tiempo establecido
-            //   // throw new TimeoutException("The function has taken longer than the maximum time allowed.");
-            //}
-
-
-            //Null 0 o 16 
-            if ( ResponseXml.ResponseCode == "0" || ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
-            {
-         
-                //ResponseXml.TC = xmlData.TC;
-                //ResponseXml.SKU = xmlData.SKU;
-                //ResponseXml.ID_Product = xmlData.ID_Product;
-                xmlReloadResponse = xmlData;
-                string x = EnumPrueba.TN_Cod(CR_TN_SERV(/*ResponseXml*/));
-                if (x != "")
+            //Null 71 o 16 
+            if (ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+            {        
+                string codeResponse = CR_TN_SERV(xmlData);
+                if (EnumPrueba.TN_Cod(codeResponse)!= "")
                 {
-                    return Content(x);
+                    return Content(codeResponse);
                 }
             }
             
@@ -117,39 +99,36 @@ namespace FromFrancisToLove.Controllers
             }
             //Tiket
             string Ticket =
-"///////////////////////////////////////////////////////////////////////////////////////////////////////////" + Environment.NewLine +
-"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine +"NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
-"MONTO:            " + producto.Monto + Environment.NewLine +"TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
+"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+"MONTO:            " + producto.Monto + Environment.NewLine + "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
 "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
-"TIENDA:" + Environment.NewLine +ResponseXml.ResponseCode + ":" +ResponseXml.DescripcionCode + Environment.NewLine +
-"///////////////////////////////////////////////////////////////////////////////////////////////////////////";
+ ResponseXml.ResponseCode + ":" + ResponseXml.DescripcionCode;
             return Content(Ticket);
         }
 
-        [HttpPost("Consulta_Servicio")]
-        public IActionResult TN_Consulta()
-        {
-            return Content("");
-        }
 
-        public string CR_TN_SERV(/*MyRelReq xmlReloadResponse*/)
+        [HttpPost("Consultar_TN")]
+        public string CR_TN_SERV(MyRelReq xmlData)
         {
-            MyRelReq xmlQueryRequest = new MyRelReq();
-            
-            xmlQueryRequest.PhoneNumber = xmlReloadResponse.PhoneNumber;
-            xmlQueryRequest.SKU = xmlReloadResponse.SKU;
-            xmlQueryRequest.TC = xmlReloadResponse.TC;
-            xmlQueryRequest.TransNumber = xmlReloadResponse.TransNumber;
+            MyRelReq xmlRequest = new MyRelReq();
+            xmlRequest.PhoneNumber = xmlData.ID_Product;
+            xmlRequest.PhoneNumber = xmlData.PhoneNumber;
+            xmlRequest.SKU = xmlData.SKU;
+            xmlRequest.TC = xmlData.TC;
+            xmlRequest.TransNumber = xmlData.TransNumber;
 
             var servicio = "getQueryClass";
            
-            if (xmlReloadResponse.ID_Product!="")
+            //Si existe producto desde la BD lo agrega
+            if (xmlData.ID_Product!="")
             {
-                xmlQueryRequest.ID_Product = xmlReloadResponse.ID_Product;
+                xmlRequest.ID_Product = xmlData.ID_Product;
                 servicio = "getQueryDatClass";
             }
+
             XmlDocument xmldoc = new XmlDocument();
-            xmldoc.LoadXml(GetResponse(servicio,xmlQueryRequest));
+          //  var xmla =GetResponse( servicio, xmlQueryRequest);
+            xmldoc.LoadXml(GetResponse(servicio,xmlRequest));
             XmlNodeList nodeList = xmldoc.GetElementsByTagName(servicio + "Result");
 
             string xml = "";
@@ -168,33 +147,25 @@ namespace FromFrancisToLove.Controllers
             return x;
         }
 
+        //Aqui sucede la magia :v
         public string GetResponse(string servicio,MyRelReq xmlQueryRequest)
         {
             var sXML = TNClass.GetXMLs(xmlQueryRequest, servicio);
             var item = _context.conexion_Configs.Find(2);
             HttpWebRequest webRequest = TNClass.CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/" + servicio, item.Usr, item.Pwd);
-    
             XmlDocument soapEnvelopeXml = TNClass.CreateSoapEnvelope(servicio, sXML);
             TNClass.InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-
             IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
             asyncResult.AsyncWaitHandle.WaitOne();
             string soapResult="";
-
-
-
-
-
             using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
                 {
                     using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
                     {
                         soapResult = rd.ReadToEnd();
-
                     }
-                  //  Thread.Sleep(70000);
+                    Thread.Sleep(20000);
                 }
-     
             return soapResult;
         }
     }
