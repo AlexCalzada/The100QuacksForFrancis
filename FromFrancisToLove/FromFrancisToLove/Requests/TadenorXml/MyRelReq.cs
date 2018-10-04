@@ -63,7 +63,7 @@ namespace FromFrancisToLove.Requests
         public string AutoNo { get; set; }
         public string ResponseCode { get; set; }
         public string DescripcionCode { get; set; }
-        public string Monto { get; set; }
+      //  public string Monto { get; set; }
 
     }
 

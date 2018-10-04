@@ -49,16 +49,18 @@ namespace FromFrancisToLove.Controllers
             var response = "ReloadResponse";
             //Determinamos el tipo de servicio Saldo o Datos
             //catalogos_Producto
-            var producto = _context.catalogos_Productos.First(a => a.SKU == xmlData.SKU && a.CONFIGID == 2);
+            string[] prefixSku = xmlData.SKU.Split("-");
+        
+            var producto = _context.catalogos_Productos.First(a => a.SKU == xmlData.SKU);
             if (producto.IDProduct != "")
             {
               service = "getReloadData";
               response = "DataResponse";
               xmlData.ID_Product = producto.IDProduct;
             }
-           
+            xmlData.SKU = prefixSku[1];
             //  ResponseXml = TNClass.GetRespuesta(soapResult, service + "Result", response);
-           
+
             var task = Task.Run(() =>{return GetResponse(service, xmlData);});
 
             MyRelReq ResponseXml = new MyRelReq();
@@ -67,9 +69,9 @@ namespace FromFrancisToLove.Controllers
                 var success = task.Wait(50000);
                 if (!success)
                 {
-                    
-                    string codeResponse = CR_TN_SERV(xmlData);
-                    if (codeResponse != "")
+                    //EDITAR
+                    string codeResponse =  CR_TN_SERV(xmlData).ToString();
+                    if (codeResponse.ToString() != "")
                     {
                         return Content("Lo sentimos El servicio tardo mas de los esperado :( "+codeResponse+":"+ EnumPrueba.TN_Cod(codeResponse));
                     }
@@ -84,10 +86,11 @@ namespace FromFrancisToLove.Controllers
                 throw ex.InnerException;
             }
 
-            //Null 71 o 16 
+            // 71 o 6 
             if (ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
-            {        
-                string codeResponse = CR_TN_SERV(xmlData);
+            {
+                //EDITAR
+                var codeResponse =  CR_TN_SERV(xmlData).ToString();
                 if (EnumPrueba.TN_Cod(codeResponse)!= "")
                 {
                     return Content(codeResponse);
@@ -99,28 +102,31 @@ namespace FromFrancisToLove.Controllers
                 return Content(ResponseXml.DescripcionCode);
             }
            
-            InsertSuccessfulTransaction(2,ResponseXml.SKU,ResponseXml.PhoneNumber, Decimal.Parse(ResponseXml.Monto));
-            //Tiket
+         
             string Ticket =
-"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
-"MONTO:            " + producto.Monto + Environment.NewLine + "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
-"FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
- ResponseXml.ResponseCode + ":" + ResponseXml.DescripcionCode;
+
+                "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+                "MONTO:            " + producto.Monto + Environment.NewLine + "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
+                "FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
+                 ResponseXml.ResponseCode + ":" + ResponseXml.DescripcionCode;
+
             return Content(Ticket);
         }
 
 
         [HttpPost("Consultar_TN")]
-        public string CR_TN_SERV(MyRelReq xmlData)
+        public IActionResult CR_TN_SERV(MyRelReq xmlData)
         {
             MyRelReq xmlRequest = new MyRelReq();
             var servicio = "getQueryClass";
-
+            var response = "QueryResponse";
             //Si existe producto desde la BD lo agrega
-            if (xmlData.ID_Product != "")
+            if (xmlData.ID_Product != null)
             {
-                xmlRequest.ID_Product = xmlData.ID_Product;
                 servicio = "getQueryDatClass";
+                response = "DataQueryResponse";
+                xmlRequest.ID_Product = xmlData.ID_Product;
+                
             }
             xmlRequest.PhoneNumber = xmlData.ID_Product;
             xmlRequest.PhoneNumber = xmlData.PhoneNumber;
@@ -128,27 +134,11 @@ namespace FromFrancisToLove.Controllers
             xmlRequest.TC = xmlData.TC;
             xmlRequest.TransNumber = xmlData.TransNumber;
 
-            XmlDocument xmldoc = new XmlDocument();
-            xmldoc.LoadXml(GetResponse(servicio,xmlRequest));
-            XmlNodeList nodeList = xmldoc.GetElementsByTagName(servicio + "Result");
-
-            string xml = "";
-            foreach (XmlNode node in nodeList)
-            {
-                xml = node.InnerText;
-            }
-            xmldoc.LoadXml(TNClass.Des_ScapeXML(xml));
-            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
-
-            string x="";
-            foreach (XmlNode node in nodeList)
-            {
-                x = node.InnerText;
-            }
-
-           // InsertSuccessfulTransaction(2, xmlData.SKU, xmlData.PhoneNumber, Decimal.Parse(xmlData.Monto));
-
-            return x;
+            MyRelReq ResponseXml = new MyRelReq();
+            string xml = GetResponse(servicio, xmlRequest);
+            ResponseXml = TNClass.GetRespuesta(xml, servicio + "Result", response);
+            string CodeResponse =ResponseXml.ResponseCode;
+            return Content(CodeResponse);
         }
 
         //Aqui sucede la magia :v

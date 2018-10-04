@@ -17,8 +17,10 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
 {
     public class ClassTN
     {
+        //Deserealiza el xml que sera enviado Saldo/Datos
         public string GetXMLs(object xmlData, string x)
         {
+            
             XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
             var settings = new XmlWriterSettings();
             settings.Indent = true;
@@ -26,10 +28,10 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             StringWriter sw = new StringWriter();
             XmlWriter writer = XmlWriter.Create(sw, settings);
             xmls.Serialize(writer, xmlData);
-            string y = sw.ToString().Replace("MyRelReq", x);
-            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" + y);
+            string xml = sw.ToString().Replace("MyRelReq", x);
+            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" + xml);
         }
-
+        //Serializa en Objeto el xml de respuesta
         public MyRelReq GetRespuesta(string xml, string path, string response)
         {
             XmlDocument xmldoc = new XmlDocument();
@@ -50,8 +52,8 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             MemoryStream stream = new MemoryStream(byteArray);
 
             StreamReader sr = new StreamReader(stream);
-            MyRelReq rr = (MyRelReq)xmls.Deserialize(sr);
-            return rr;
+            MyRelReq modelo = (MyRelReq)xmls.Deserialize(sr);
+            return modelo;
         }
 
         public string ReloadValidation(MyRelReq xml)
@@ -105,6 +107,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             Stream stream = webRequest.GetRequestStream();
             soapEnvelopeXml.Save(stream);
         }
+
 
     }
 
