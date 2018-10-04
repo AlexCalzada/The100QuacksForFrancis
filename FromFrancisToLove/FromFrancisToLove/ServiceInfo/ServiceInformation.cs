@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Diestel;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,10 +36,23 @@ namespace FromFrancisToLove.ServiceInfo
         //Dato Temporal
         public long NumeroAutorizacion { get; set; }
         
+        //Datos del JSON
+        public string jSKU { get; set; }
+        public string jReference { get; set; }
+        public int jProvider { get; set; }
 
         //Temporales (Solo de prueba)
         public string TelReference { get; set; }
         public string JSON { get; set; }
+    }
+
+    public class JsonRequest
+    {
+        public string jSKU { get; set; }
+        public string jReference { get; set; }
+        public int jProvider { get; set; }
+
+        public cCampo campo { get; set; }
     }
 
     public enum Provider
