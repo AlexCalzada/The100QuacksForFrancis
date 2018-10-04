@@ -92,6 +92,23 @@ namespace FromFrancisToLove.Controllers
             }
         }
 
+        private void GetValuesFromJson(string JsonString)
+        {
+            var jarr = JArray.Parse(JsonString);
+            foreach (var jarrItem in jarr.Children<JObject>())
+            {
+                foreach (var propertyItem in jarrItem.Properties())
+                {
+                    string propertyName = propertyItem.Name;
+                    if (propertyName == "SKU")
+                    {
+                        string propertyValue = (string)propertyItem.Value;
+                        Content($"Nombre: {propertyName}, Valor: {propertyValue} </br>");
+                    }
+                }
+            }
+        }
+
         // GET: api/Diestel
         //[HttpGet]
         //public IActionResult Get()
@@ -291,15 +308,58 @@ namespace FromFrancisToLove.Controllers
         [HttpPost("PayService")]
         public IActionResult PayService(ServiceInformation data)
         {
+            var jarr = JArray.Parse(data.JSON);
+
+            string Prefix = "";
+            string sku = "";
+            string refe = "";
+
+            foreach (var jarrItem in jarr.Children<JObject>())
+            {
+                foreach (var propertyItem in jarrItem.Properties())
+                {
+                    string propertyName = propertyItem.Name;
+                    string propertyValue = (string)propertyItem.Value;
+
+                    switch (propertyName)
+                    {
+                        case "SKU":
+                            string[] s = propertyValue.Split('-');
+                            for (int i = 0; i < s.Length - 1; i++)
+                            {
+
+                                if (s[0].Length == 2)
+                                {
+                                    Prefix = s[0];
+                                    if (s[1].Length == 13)
+                                    {
+                                        sku = s[1];
+                                    }
+                                }
+                            }
+                            break;
+                        case "Referencia":
+                            refe = propertyValue;
+                            break;
+                    }
+
+                }
+            }
+
+            var jj = JsonConvert.DeserializeObject<List<cCampo>>((string)jarr[1]);
+            switch (Prefix)
+            {
+                case "DT":
+                    jj = JsonConvert.DeserializeObject<List<cCampo>>((string)jarr[1]);
+                    break;
+            }
+
+            //return Ok($"Prefijo: {Prefix} | SKU: {sku} | Referencia: {refe}");
+
             // Se almacenan los valores del JSON recibido
-            var _SKU = (string)JArray.Parse(data.JSON).Children()["SKU"].First();
-            var _Ref = (string)JArray.Parse(data.JSON).Children()["Referencia"].First();
-            var _Provider = (string)JArray.Parse(data.JSON).Children()["Proveedor"].First();
-
-            var array = JArray.Parse(data.JSON);
-
-            var js = JsonConvert.DeserializeObject<List<cCampo>>(array[1].ToString());
-            
+            var _SKU = sku;
+            var _Ref = refe;
+            var js = jj;
 
             //return Ok($"SKU: {_SKU} | Referencia: {_Ref} | Proveedor: {_Provider}");
 
