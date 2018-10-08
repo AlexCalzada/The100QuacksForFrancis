@@ -28,6 +28,8 @@ namespace FromFrancisToLove.Diestel
         protected string referencia;
         protected string sku;
 
+        protected string responseData = "";
+
         public TXDiestel() { }
 
         public TXDiestel(string _sku, string _referencia, string _numAutorizacion, string _usr, string _pwd, string _encryptKey)
@@ -115,16 +117,18 @@ namespace FromFrancisToLove.Diestel
         }
 
         //Proceso para la cancelacion del Pago
-        public void ExecuteReverseProcess(string CodigoRespuesta, string Descripcion, string Tx)
+        public string ExecuteReverseProcess(string CodigoRespuesta, string Descripcion, string Tx)
         {
             try
             {
                 var reversosLog = new CancelLog("LOG_Reversos_", "txt", @"C:\ApiService\Client\Reversos", LOGFrecuency.Daily);
                 reversosLog.WriteTXData(CodigoRespuesta, Descripcion, Tx);
 
+                //var ts = new ThreadStart(() => Reversas("s"));
                 var ts = new ThreadStart(Reversas);
                 var hilo = new Thread(ts);
                 hilo.Start();
+                return responseData;
             }
             catch (Exception ex)
             {
@@ -134,9 +138,6 @@ namespace FromFrancisToLove.Diestel
 
         public void Reversas()
         {
-            
-            //var wsClient = _context.conexion_Configs.Find(1);
-
             cCampo[] requestReversa = new cCampo[12];
 
             try
@@ -217,6 +218,7 @@ namespace FromFrancisToLove.Diestel
                     try
                     {
                         var response = wservice.ReversaAsync(requestReversa).Result;
+                        responseData = response.ToString();
                         try
                         {
                             if (response[0].sCampo == "CODIGORESPUESTA" && response[0].sValor.ToString() == "0")

@@ -34,12 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="PXSecurity">
-      <HintPath>..\..\..\..\..\Desktop\WServices\Diestel\PXSecurity (com)\PXSecurity.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
