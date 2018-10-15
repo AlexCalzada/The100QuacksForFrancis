@@ -64,6 +64,7 @@ namespace FromFrancisToLove.Payments
                 return new List<Field>();
             }
 
+
             public ResponseService Request(List<Field> Fields)
             {
                 if (!IsConfigured) throw new Exception();

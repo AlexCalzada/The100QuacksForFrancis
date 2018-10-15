@@ -37,7 +37,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
                 {
                     soapResult = rd.ReadToEnd();
                 }
-                 //Thread.Sleep(20000);
+                //Thread.Sleep(20000);
             }
             return soapResult;
         }
@@ -68,7 +68,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
         //Deserealiza el xml que sera enviado Saldo/Datos
         private string Get_XMLs(object xmlData, string x)
         {
-            
+
             XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
             var settings = new XmlWriterSettings();
             settings.Indent = true;
