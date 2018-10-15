@@ -12,10 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Payments\Services.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Filters\" />
     <Folder Include="Formatters\" />
-    <Folder Include="Middlewares\Extensions\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
@@ -33,6 +36,10 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Payments\Services.cs" />
   </ItemGroup>
 
   <ItemGroup>
