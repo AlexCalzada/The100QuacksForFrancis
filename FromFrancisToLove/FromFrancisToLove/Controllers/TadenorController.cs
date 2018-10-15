@@ -99,7 +99,7 @@ namespace FromFrancisToLove.Controllers
                 return Content(ResponseXml.DescripcionCode);
             }
            
-            InsertSuccessfulTransaction(2,ResponseXml.SKU,ResponseXml.PhoneNumber, Decimal.Parse(ResponseXml.Monto));
+            //InsertSuccessfulTransaction(2,ResponseXml.SKU,ResponseXml.PhoneNumber, decimal.Parse(ResponseXml.Monto));
             //Tiket
             string Ticket =
 "NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +

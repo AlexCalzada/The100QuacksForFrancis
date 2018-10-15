@@ -12,8 +12,6 @@ using Tadenor;
 using Diestel;
 using System.Xml;
 using FromFrancisToLove.Requests.ModuleDiestel;
-using FromFrancisToLove.Requests.DiestelMio;
-using PXSecurity.Datalogic.Classes;
 using FromFrancisToLove.Models;
 using System.Net;
 using System.Xml.Linq;
@@ -36,14 +34,14 @@ namespace FromFrancisToLove.Controllers
         }
 
         // GET: api/CatalogoProductos
-        [HttpGet]
-        public IActionResult Get()
-        {
-            try
-            {
-                var config = _context.conexion_Configs.Find(1);
-                var modulo = new ModuleTDV();
-                string pago = TipoPago.Efectivo.AsText();
+        //[HttpGet]
+        //public IActionResult Get()
+        //{
+            //try
+            //{
+            //    var config = _context.conexion_Configs.Find(1);
+            //    var modulo = new ModuleTDV();
+            //    string pago = TipoPago.Efectivo.AsText();
 
                 //modulo.Grupo = module.Grupo;
                 //modulo.Cadena = module.Cadena;
@@ -51,108 +49,108 @@ namespace FromFrancisToLove.Controllers
                 //modulo.POS = module.POS;
                 //modulo.Cajero = module.Cajero;
 
-                modulo.SKU = "8469760000187";
-                modulo.EncriptionKey = config.CrypKey;
-                modulo.TokenValor = "1020304050";
+                //modulo.SKU = "8469760000187";
+                //modulo.EncriptionKey = config.CrypKey;
+                //modulo.TokenValor = "1020304050";
 
-                var list = new List<Requests.DiestelMio.cCampo>();
-                list.AddRange(new Requests.DiestelMio.cCampo[]
-                {
-                    new Requests.DiestelMio.cCampo("IDGRUPO", 7),
-                    new Requests.DiestelMio.cCampo("IDCADENA", 1),
-                    new Requests.DiestelMio.cCampo("IDTIENDA", 1),
-                    new Requests.DiestelMio.cCampo("IDPOS", 1),
-                    new Requests.DiestelMio.cCampo("IDCAJERO", 1),
-                    new Requests.DiestelMio.cCampo("FECHALOCAL", DateTime.Now.ToString("dd/MM/yyyy")),
-                    new Requests.DiestelMio.cCampo("HORALOCAL", DateTime.Now.ToString("HH:mm:ss")),
-                    new Requests.DiestelMio.cCampo("FECHACONTABLE", DateTime.Now.ToString("dd/MM/yyyy")),
-                    new Requests.DiestelMio.cCampo("TRANSACCION", modulo.NextTicket),
-                    new Requests.DiestelMio.cCampo("SKU", modulo.SKU),
-                    new Requests.DiestelMio.cCampo("TIPOPAGO", pago),
+                //var list = new List<Requests.DiestelMio.cCampo>();
+                //list.AddRange(new Requests.DiestelMio.cCampo[]
+                //{
+                //    new Requests.DiestelMio.cCampo("IDGRUPO", 7),
+                //    new Requests.DiestelMio.cCampo("IDCADENA", 1),
+                //    new Requests.DiestelMio.cCampo("IDTIENDA", 1),
+                //    new Requests.DiestelMio.cCampo("IDPOS", 1),
+                //    new Requests.DiestelMio.cCampo("IDCAJERO", 1),
+                //    new Requests.DiestelMio.cCampo("FECHALOCAL", DateTime.Now.ToString("dd/MM/yyyy")),
+                //    new Requests.DiestelMio.cCampo("HORALOCAL", DateTime.Now.ToString("HH:mm:ss")),
+                //    new Requests.DiestelMio.cCampo("FECHACONTABLE", DateTime.Now.ToString("dd/MM/yyyy")),
+                //    new Requests.DiestelMio.cCampo("TRANSACCION", modulo.NextTicket),
+                //    new Requests.DiestelMio.cCampo("SKU", modulo.SKU),
+                //    new Requests.DiestelMio.cCampo("TIPOPAGO", pago),
 
-                    new Requests.DiestelMio.cCampo("REFERENCIA", "9A4E5ADBAE1E3E0DBA9A83", true),
-                    new Requests.DiestelMio.cCampo("MONTO", 20.00)
-                });
+                //    new Requests.DiestelMio.cCampo("REFERENCIA", "9A4E5ADBAE1E3E0DBA9A83", true),
+                //    new Requests.DiestelMio.cCampo("MONTO", 20.00)
+                //});
 
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Requests.DiestelMio.cCampo>), new XmlRootAttribute("cArrayCampos"));
-                StringWriter sw = new StringWriter();
-                XmlWriter writer = XmlWriter.Create(sw);
-                xmlSerializer.Serialize(writer, list);
+            //    XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Requests.DiestelMio.cCampo>), new XmlRootAttribute("cArrayCampos"));
+            //    StringWriter sw = new StringWriter();
+            //    XmlWriter writer = XmlWriter.Create(sw);
+            //    xmlSerializer.Serialize(writer, list);
 
-                var sXml = RemoveAllNamespaces(sw.ToString());
+            //    var sXml = RemoveAllNamespaces(sw.ToString());
 
-                HttpWebRequest webRequest = CreateWebRequest(config.Url, "http://www.pagoexpress.com.mx/pxUniversal/Ejecuta", config.Usr, config.Pwd);
-                XmlDocument soapEnvelopeXml = CreateSoapEnvelope(sXml);
+            //    HttpWebRequest webRequest = CreateWebRequest(config.Url, "http://www.pagoexpress.com.mx/pxUniversal/Ejecuta", config.Usr, config.Pwd);
+            //    XmlDocument soapEnvelopeXml = CreateSoapEnvelope(sXml);
 
-                InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-                IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-                asyncResult.AsyncWaitHandle.WaitOne();
+            //    InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+            //    IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            //    asyncResult.AsyncWaitHandle.WaitOne();
 
-                string soapResult;
-                using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-                {
-                    using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
-                    {
-                        soapResult = rd.ReadToEnd();
-                    }
+            //    string soapResult;
+            //    using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            //    {
+            //        using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+            //        {
+            //            soapResult = rd.ReadToEnd();
+            //        }
 
-                    return Content(soapResult);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-        }
+            //        return Content(soapResult);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex);
+            //}
+        //}
 
-        private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
-        {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Credentials = new NetworkCredential(Usr, Pwd);
-            webRequest.Headers.Add("SOAPAction", action);
-            webRequest.ContentType = "text/xml;charset=\"utf-8\"";
-            webRequest.Method = "POST";
+        //private static HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
+        //{
+        //    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+        //    webRequest.Credentials = new NetworkCredential(Usr, Pwd);
+        //    webRequest.Headers.Add("SOAPAction", action);
+        //    webRequest.ContentType = "text/xml;charset=\"utf-8\"";
+        //    webRequest.Method = "POST";
 
-            return webRequest;
-        }
+        //    return webRequest;
+        //}
 
-        private static XmlDocument CreateSoapEnvelope(string sXml)
-        {
-            XmlDocument soapEnvelopeDocument = new XmlDocument();
-            soapEnvelopeDocument.LoadXml($"{EnvelopeBody_begin_xml}{sXml}{EnvelopeBody_end_xml}");
+        //private static XmlDocument CreateSoapEnvelope(string sXml)
+        //{
+        //    XmlDocument soapEnvelopeDocument = new XmlDocument();
+        //    soapEnvelopeDocument.LoadXml($"{EnvelopeBody_begin_xml}{sXml}{EnvelopeBody_end_xml}");
 
-            return soapEnvelopeDocument;
-        }
+        //    return soapEnvelopeDocument;
+        //}
 
-        private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
-        {
-            using (Stream stream = webRequest.GetRequestStream())
-            {
-                soapEnvelopeXml.Save(stream);
-            }
-        }
+        //private static void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
+        //{
+        //    using (Stream stream = webRequest.GetRequestStream())
+        //    {
+        //        soapEnvelopeXml.Save(stream);
+        //    }
+        //}
 
-        public static string RemoveAllNamespaces(string xmlDocument)
-        {
-            XElement xmlDocumentWithoutNs = RemoveAllNamespaces(XElement.Parse(xmlDocument));
+        //public static string RemoveAllNamespaces(string xmlDocument)
+        //{
+        //    XElement xmlDocumentWithoutNs = RemoveAllNamespaces(XElement.Parse(xmlDocument));
 
-            return xmlDocumentWithoutNs.ToString();
-        }
+        //    return xmlDocumentWithoutNs.ToString();
+        //}
 
-        private static XElement RemoveAllNamespaces(XElement xmlDocument)
-        {
-            if (!xmlDocument.HasElements)
-            {
-                XElement xElement = new XElement(xmlDocument.Name.LocalName);
-                xElement.Value = xmlDocument.Value;
+        //private static XElement RemoveAllNamespaces(XElement xmlDocument)
+        //{
+        //    if (!xmlDocument.HasElements)
+        //    {
+        //        XElement xElement = new XElement(xmlDocument.Name.LocalName);
+        //        xElement.Value = xmlDocument.Value;
 
-                foreach (XAttribute attribute in xmlDocument.Attributes())
-                    xElement.Add(attribute);
+        //        foreach (XAttribute attribute in xmlDocument.Attributes())
+        //            xElement.Add(attribute);
 
-                return xElement;
-            }
-            return new XElement(xmlDocument.Name.LocalName, xmlDocument.Elements().Select(el => RemoveAllNamespaces(el)));
-        }
+        //        return xElement;
+        //    }
+        //    return new XElement(xmlDocument.Name.LocalName, xmlDocument.Elements().Select(el => RemoveAllNamespaces(el)));
+        //}
 
         // GET: api/CatalogoProductos/5
         //[HttpGet("{id}", Name = "Get")]

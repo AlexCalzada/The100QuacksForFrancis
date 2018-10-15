@@ -5119,7 +5119,7 @@
           "ref/netstandard1.2/System.Threading.Timer.dll": {}
         }
       },
-      "System.ValueTuple/4.4.0": {
+      "System.ValueTuple/4.5.0": {
         "type": "package",
         "compile": {
           "ref/netcoreapp2.0/_._": {}
@@ -13525,11 +13525,12 @@
         "system.threading.timer.nuspec"
       ]
     },
-    "System.ValueTuple/4.4.0": {
-      "sha512": "BahUww/+mdP4ARCAh2RQhQTg13wYLVrBb9SYVgW8ZlrwjraGCXHGjo0oIiUfZ34LUZkMMR+RAzR7dEY4S1HeQQ==",
+    "System.ValueTuple/4.5.0": {
+      "sha512": "xZtSZNEHGa+tGsKuP4sh257vxJ/yemShz4EusmomkynMzuEDDjVaErBNewpzEF6swUgbcrSQAX3ELsEp1zCOwA==",
       "type": "package",
-      "path": "system.valuetuple/4.4.0",
+      "path": "system.valuetuple/4.5.0",
       "files": [
+        ".signature.p7s",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/MonoAndroid10/_._",
@@ -13544,6 +13545,7 @@
         "lib/netstandard2.0/_._",
         "lib/portable-net40+sl4+win8+wp8/System.ValueTuple.dll",
         "lib/portable-net40+sl4+win8+wp8/System.ValueTuple.xml",
+        "lib/uap10.0.16299/_._",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
         "lib/xamarintvos10/_._",
@@ -13551,18 +13553,16 @@
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net461/System.ValueTuple.dll",
-        "ref/net461/System.ValueTuple.xml",
         "ref/net47/System.ValueTuple.dll",
-        "ref/net47/System.ValueTuple.xml",
         "ref/netcoreapp2.0/_._",
         "ref/netstandard2.0/_._",
         "ref/portable-net40+sl4+win8+wp8/System.ValueTuple.dll",
-        "ref/portable-net40+sl4+win8+wp8/System.ValueTuple.xml",
+        "ref/uap10.0.16299/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._",
-        "system.valuetuple.4.4.0.nupkg.sha512",
+        "system.valuetuple.4.5.0.nupkg.sha512",
         "system.valuetuple.nuspec",
         "useSharedDesignerContext.txt",
         "version.txt"
@@ -13919,7 +13919,8 @@
       "System.ServiceModel.Duplex >= 4.4.*",
       "System.ServiceModel.Http >= 4.4.*",
       "System.ServiceModel.NetTcp >= 4.4.*",
-      "System.ServiceModel.Security >= 4.4.*"
+      "System.ServiceModel.Security >= 4.4.*",
+      "System.ValueTuple >= 4.5.0"
     ]
   },
   "packageFolders": {
@@ -13929,11 +13930,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\alex_\\Source\\Repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\FromFrancisToLove.csproj",
+      "projectUniqueName": "C:\\Users\\alex_\\source\\repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\FromFrancisToLove.csproj",
       "projectName": "FromFrancisToLove",
-      "projectPath": "C:\\Users\\alex_\\Source\\Repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\FromFrancisToLove.csproj",
+      "projectPath": "C:\\Users\\alex_\\source\\repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\FromFrancisToLove.csproj",
       "packagesPath": "C:\\Users\\alex_\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\alex_\\Source\\Repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\obj\\",
+      "outputPath": "C:\\Users\\alex_\\source\\repos\\The100QuacksForFrancis\\FromFrancisToLove\\FromFrancisToLove\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -13999,6 +14000,10 @@
           "System.ServiceModel.Security": {
             "target": "Package",
             "version": "[4.4.*, )"
+          },
+          "System.ValueTuple": {
+            "target": "Package",
+            "version": "[4.5.0, )"
           }
         },
         "imports": [

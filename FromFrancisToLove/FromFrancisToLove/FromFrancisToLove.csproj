@@ -14,6 +14,7 @@
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Filters\" />
+    <Folder Include="Formatters\" />
     <Folder Include="Middlewares\Extensions\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
@@ -27,6 +28,7 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.4.*" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
