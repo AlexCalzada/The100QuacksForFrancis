@@ -14,15 +14,8 @@ namespace FromFrancisToLove.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string SKU { get; set; }
         public int CONFIGID { get; set; }
-    
-        public string IDProduct {
-            get;set;
-        }
-        public string Monto
-        {
-            get;set;
-        }
-
+        public string IDProduct { get; set; }
+        public string Monto { get; set; }
         public string Marca { get; set; }
     }
 }

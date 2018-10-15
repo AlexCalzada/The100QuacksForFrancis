@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using FromFrancisToLove.Data;
 
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace FromFrancisToLove.Controllers
 {
@@ -20,3 +19,5 @@ namespace FromFrancisToLove.Controllers
         }
     }
 }
+
+

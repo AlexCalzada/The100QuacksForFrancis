@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\TnClass.cs" />
+    <Compile Remove="Requests\ModuleTadenor\TNClass_Enviar.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Filters\" />
     <Folder Include="Middlewares\Extensions\" />

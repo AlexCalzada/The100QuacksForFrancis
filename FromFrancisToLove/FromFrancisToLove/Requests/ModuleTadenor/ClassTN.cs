@@ -12,27 +12,37 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace FromFrancisToLove.Requests.ModuleTadenor
 {
     public class ClassTN
     {
-        //Deserealiza el xml que sera enviado Saldo/Datos
-        public string GetXMLs(object xmlData, string x)
+
+        public string Send_Request(string servicio, MyRelReq xmlQuery, string[] credencial)
         {
-            
-            XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
-            var settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.OmitXmlDeclaration = true;
-            StringWriter sw = new StringWriter();
-            XmlWriter writer = XmlWriter.Create(sw, settings);
-            xmls.Serialize(writer, xmlData);
-            string xml = sw.ToString().Replace("MyRelReq", x);
-            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" + xml);
+            // Crea el xml de acuerdo  al procesos, ya sea  Recarga o consulta
+            var sXML = Get_XMLs(xmlQuery, servicio);
+
+            HttpWebRequest webRequest = CreateWebRequest(credencial[0], "http://www.pagoexpress.com.mx/ServicePX/" + servicio, credencial[1], credencial[2]);
+
+            XmlDocument soapEnvelopeXml = CreateSoapEnvelope(servicio, sXML);
+            InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            asyncResult.AsyncWaitHandle.WaitOne();
+            string soapResult = "";
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            {
+                using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    soapResult = rd.ReadToEnd();
+                }
+                 //Thread.Sleep(20000);
+            }
+            return soapResult;
         }
-        //Serializa en Objeto el xml de respuesta
-        public MyRelReq GetRespuesta(string xml, string path, string response)
+
+        public MyRelReq Deserializer_Response(string xml, string path, string response)
         {
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.LoadXml(xml);
@@ -55,8 +65,23 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             MyRelReq modelo = (MyRelReq)xmls.Deserialize(sr);
             return modelo;
         }
+        //Deserealiza el xml que sera enviado Saldo/Datos
+        private string Get_XMLs(object xmlData, string x)
+        {
+            
+            XmlSerializer xmls = new XmlSerializer(xmlData.GetType());
+            var settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.OmitXmlDeclaration = true;
+            StringWriter sw = new StringWriter();
+            XmlWriter writer = XmlWriter.Create(sw, settings);
+            xmls.Serialize(writer, xmlData);
+            string xml = sw.ToString().Replace("MyRelReq", x);
+            return ScapeXML(@"<?xml version=""1.0"" encoding=""utf-8""?>" + xml);
+        }
+        //Serializa en Objeto el xml de respuesta
 
-        public string ReloadValidation(MyRelReq xml)
+        private string ReloadValidation(MyRelReq xml)
         {
 
             if (xml.PhoneNumber.ToString().Length > 10) { return "PhoneNumber lenght es mayor a 10"; }
@@ -64,29 +89,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             return null;
         }
 
-        public  HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
-        {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Credentials = new System.Net.NetworkCredential(Usr, Pwd);
-            webRequest.Headers.Add("SOAPAction", action);
-            webRequest.ContentType = "text/xml; charset=\"utf-8\"";
-            webRequest.Method = "POST";
-            return webRequest;
-        }
-
-        public  string ScapeXML(string sXML)
-        {
-            sXML = sXML.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
-            return sXML;
-        }
-
-        public  string Des_ScapeXML(string sXML)
-        {
-            sXML = sXML.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&quot;", "\"").Replace("&apos;", "'");
-            return sXML;
-        }
-
-        public  XmlDocument CreateSoapEnvelope(string servicio, string sXML)
+        private XmlDocument CreateSoapEnvelope(string servicio, string sXML)
         {
             string xml =
              @"<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">" +
@@ -102,45 +105,59 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             return soapEnvelopeDocument;
         }
 
-        public  void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
+        private void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXml, HttpWebRequest webRequest)
         {
             Stream stream = webRequest.GetRequestStream();
             soapEnvelopeXml.Save(stream);
         }
 
-
-    }
-
-    public static class EnumPrueba
-    {
-        public static string TN_Cod(string x)
+        private HttpWebRequest CreateWebRequest(string url, string action, string Usr, string Pwd)
         {
-            switch (Int32.Parse(x))
-            {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Credentials = new System.Net.NetworkCredential(Usr, Pwd);
+            webRequest.Headers.Add("SOAPAction", action);
+            webRequest.ContentType = "text/xml; charset=\"utf-8\"";
+            webRequest.Method = "POST";
+            return webRequest;
+        }
+        // Se encuentran en otra clase----------------------------------------------------------
+        private string ScapeXML(string sXML)
+        {
+            sXML = sXML.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
+            return sXML;
+        }
 
-                case 2: return "NO FUE POSIBLE REGISTRAR LA TERMINALS";
-                case 5: return "SWITCH NO DISPONIBLE";
-                case 6: case 70: return "Servicio no disponible";
-                case 8: return "SERVIDOR DE CARRIER ABAJO, INTENTE MAS TARDE";
-                case 19: return "EL NUMERO DE TRANSACCION DE LA CAJA ES INVALIDO, DEBE SER MAYOR QUE 0";
-                case 30: return "ERROR DE FORMATO EN EL MENSAJE";
-                case 34: return "NUMERO DE TELÉFONO INVALIDO";
-                case 35: return "Su terminal ha sido bloqueada por exceder el monto permitido";
-                case 66: case 67: return "EN ESTOS MOMENTOS NO CUENTAS CON CREDITO DISPONIBLE";
-                case 71: return "NO HAY RESPUESTA DEL SWITCH";
-                case 72: return "NO HAY RESPUESTA DEL CARRIER";
-                case 87: return "TELEFONO NO SUCEPTIBLE DE ABONO";
-                case 88: return "MONTO INVALIDO";
-                case 65:
-                case 91:
-                case 92:
-                case 93:
-                case 96:
-                case 98:
-                case 99: return "MANTENIMIENTO EN PROGRESO, INTENTE MAS TARDE";
-            }
-            return "";
+        private string Des_ScapeXML(string sXML)
+        {
+            sXML = sXML.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&quot;", "\"").Replace("&apos;", "'");
+            return sXML;
+        }
+        //----------------------------------------------------------
+
+        public string jString(MyRelReq ResponseXml)
+        {
+            string jsonFormat =
+        "[" +
+        "{\"sCampo\":\"" + nameof(ResponseXml.ID_GRP) + "\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ID_GRP + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"ID_CHAIN\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ID_CHAIN + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"ID_MERCHANT\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ID_MERCHANT + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"ID_POS\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ID_POS + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"DateTime\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.Datetime + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"PhoneNumber\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.PhoneNumber + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"TransNumber\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.TransNumber + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"ID_Product\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ID_Product + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"Brand\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.Brand + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"Instr1\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.Instr1 + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"Instr2\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.Instr2 + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"AutoNo\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.AutoNo + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"ResponseCode\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.ResponseCode + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"DescripcionCode\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.DescripcionCode + "\", \"bEncriptado\":false}," +
+        "{\"sCampo\":\"Monto\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + ResponseXml.Monto + "\", \"bEncriptado\":false}" +
+        "]";
+            return jsonFormat;
         }
 
     }
+
+
 }

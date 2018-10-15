@@ -17,7 +17,7 @@ namespace FromFrancisToLove.Models
         public string Usr { get; set; }
         public string Pwd { get; set; }
         public string CrypKey { get; set; }
-        public int  WSGroupId { get; set; }
+        public int WSGroupId { get; set; }
 
     }
 }
