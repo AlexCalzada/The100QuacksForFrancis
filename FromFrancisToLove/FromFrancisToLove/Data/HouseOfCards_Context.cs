@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FromFrancisToLove.Models;
-using FromFrancisToLove.Requests;
+
 
 namespace FromFrancisToLove.Data
 {
@@ -15,8 +15,6 @@ namespace FromFrancisToLove.Data
         public DbSet<Tienda_Config> tienda_Configs { get; set; }
         public DbSet<Catalogos_Producto> catalogos_Productos { get; set; }
         public DbSet<Transaccion> transaccions { get; set; }
-
-        public DbSet<Transaccion2> transaccion2s { get; set; }
-
+        public DbSet<Transacciones> transaccionesTest { get; set; }
     }
 }

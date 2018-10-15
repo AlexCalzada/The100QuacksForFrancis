@@ -32,10 +32,9 @@ namespace FromFrancisToLove
             services.AddDbContext<HouseOfCards_Context>(options =>
             {
                 options.UseMySql("server = 104.196.236.172; user id = Rene; pwd = qwerty; persistsecurityinfo = True; database = HouseOfCards");
-            
             });
-
             
+
             services.AddMvc();
         }
 

@@ -15,267 +15,185 @@ using System.Text;
 using Newtonsoft.Json;
 using System.Threading;
 using FromFrancisToLove.Models;
-using Formatting = Newtonsoft.Json.Formatting;
-using Newtonsoft.Json.Linq;
+
 namespace FromFrancisToLove.Controllers
 {
     [Produces("application/json")]
     [Route("api/TN")]
-    public class TadenorController : Controller
+    public class TadenorController : Controller 
     {
-        public TadenorController(HouseOfCards_Context context)
-        {
-            _context = context;
-        }
-
-
-
         ClassTN TNClass = new ClassTN();
-        // MyRelReq xmlReloadResponse = new MyRelReq();
+       // MyRelReq xmlReloadResponse = new MyRelReq();
         public readonly HouseOfCards_Context _context;
-
-        
 
         public IActionResult GetDefault()
         {
             return Content("");
         }
-
-        [HttpPost("Skus_TN")]
-        public IActionResult Get_Skus()
+        [HttpGet("Skus_TN")]
+        public IActionResult Get()
         {
-
-            var reader = new StreamReader(Request.Body);
-            var Body = reader.ReadToEnd();
-            string JsonContent = Body;
-            dynamic data = JObject.Parse(JsonContent);
-            string Sku = data.SKU;
-            var item = _context.catalogos_Productos.First(b => b.SKU == Sku);
-            string respuesta =
-                "[" +
-                "{\"sCampo\":\"SKU\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\""+item.SKU+"\", \"bEncriptado\":true}," +
-                "{\"sCampo\":\"IdProduct\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\""+item.IDProduct + "\", \"bEncriptado\":true}," +
-                "{\"sCampo\":\"Monto\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.Monto + "\", \"bEncriptado\":true}," +
-                "{\"sCampo\":\"Marca\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.Marca + "\", \"bEncriptado\":true}," +
-                "{\"sCampo\":\"CONFIGID\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.CONFIGID + "\", \"bEncriptado\":true}" +
-                "]";
-            return Content(respuesta);
-
-           
-
-/*
-            var reader = new StreamReader(Request.Body);
-            var Body = reader.ReadToEnd();
-            string JsonContent = Body;
-            var ArrP = JArray.Parse(JsonContent);
-            var ArrH = JArray.Parse(ArrP[0].ToString());
-            foreach (var sJson in ArrH)
-            {
-                dynamic data = JObject.Parse(sJson.ToString());
-
-                string Sku = data.SKU;
-               
-                    var item = _context.catalogos_Productos.First(b => b.SKU == Sku);
-                    return Content("{\"" + nameof(item.SKU) + "\":\"" + item.SKU + "\", \"IdProduct\":\"" + item.IDProduct + "\", \"Monto\":\"" + item.Monto + "\", \"Marca\":\"" + item.Marca + "\", \"CONFIGID\":\"" + item.CONFIGID + "\"}");
-                
-            }
-            return Content("");
-          */
-
-            
-        
-         
-
-
-        }
-
-        [HttpPost("{id}/{sku}/{reference}")]
-        public IActionResult Get_Sku(string sku,string reference="")
-        {
-            
-            try
-            {
-                var item = _context.catalogos_Productos.First(a => a.SKU == sku);
-                return Content("{\""+nameof(item.SKU)+"\":\"" + item.SKU + "\", \"IdProduct\":\"" + item.IDProduct + "\", \"Monto\":\"" + item.Monto + "\", \"Marca\":\"" + item.Marca + "\", \"CONFIGID\":\"" + item.CONFIGID + "\"}");
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-             
-        
-         
-        }
-
-        [HttpPost("ALL_Skus")]
-        public IActionResult Get(string id)
-        {
-            string Skus = "[";
-            foreach (var item in _context.catalogos_Productos)
-            {
-            Skus +=
-            "[" +
-            "{\"sCampo\":\"SKU\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.SKU + "\", \"bEncriptado\":true}," +
-            "{\"sCampo\":\"IdProduct\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.IDProduct + "\", \"bEncriptado\":true}," +
-            "{\"sCampo\":\"Monto\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.Monto + "\", \"bEncriptado\":true}," +
-            "{\"sCampo\":\"Marca\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.Marca + "\", \"bEncriptado\":true}," +
-            "{\"sCampo\":\"CONFIGID\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.CONFIGID + "\", \"bEncriptado\":true}" +
-            "],";
-            }
-           Skus= Skus.Remove(Skus.Length - 1);
-            Skus += "]";
             //Regresa los SKUS
-            return Content(Skus);
-
+            return Ok(_context.catalogos_Productos);
         }
 
-
-        MyRelReq xmlData = new MyRelReq();
-        [HttpPost("Recarga_TN")]
-        public IActionResult TN_Service()
+        public TadenorController(HouseOfCards_Context context)
         {
-          
-            var reader = new StreamReader(Request.Body);
-            var Body = reader.ReadToEnd();
-            string JsonContent = Body;
-            var ArrP = JArray.Parse(JsonContent);
-            var ArrH = JArray.Parse(ArrP[0].ToString());
-            dynamic data = JObject.Parse(ArrH[0].ToString());
-            xmlData.SKU = data.SKU;
-            xmlData.PhoneNumber = data.Referencia;
+            _context = context;
+        }
 
-            string service = "getReloadClass";
-            string response = "ReloadResponse";
+        [HttpPost("Recarga_TN")] 
+        public IActionResult TN_Service(MyRelReq xmlData)
+        {
+            var service = "getReloadClass";
+            var response = "ReloadResponse";
             //Determinamos el tipo de servicio Saldo o Datos
-            string[] prefixSku = xmlData.SKU.Split("-");
-
-            var producto = _context.catalogos_Productos.First(a => a.SKU == xmlData.SKU);
+            //catalogos_Producto
+            var producto = _context.catalogos_Productos.First(a => a.SKU == xmlData.SKU && a.CONFIGID == 2);
             if (producto.IDProduct != "")
             {
-                service = "getReloadData";
-                response = "DataResponse";
-                xmlData.ID_Product = producto.IDProduct;
+              service = "getReloadData";
+              response = "DataResponse";
+              xmlData.ID_Product = producto.IDProduct;
             }
-            xmlData.SKU = prefixSku[1];
-            var credenciales = _context.conexion_Configs.Find(2);
-            var item = _context.conexion_Configs.Find(2);
 
-            string[] credentials = new string[] {item.Url, item.Usr, item.Pwd};
+            //  ResponseXml = TNClass.GetRespuesta(soapResult, service + "Result", response);
 
-            var task = Task.Run(() =>{return TNClass.Send_Request(service, xmlData, credentials);});
+            var task = Task.Run(() => { return GetResponse(service, xmlData); });
+
             MyRelReq ResponseXml = new MyRelReq();
             try
             {
                 var success = task.Wait(50000);
                 if (!success)
                 {
-                return CR_TN_SERV(ResponseXml);
+                    
+                    string codeResponse = CR_TN_SERV(xmlData);
+                    if (codeResponse != "")
+                    {
+                        return Content("Lo sentimos El servicio tardo mas de los esperado :( "+codeResponse+":"+ EnumPrueba.TN_Cod(codeResponse));
+                    }
                 }
                 else
                 {
-                ResponseXml = TNClass.Deserializer_Response(task.Result, service + "Result", response);
+                    ResponseXml = TNClass.GetRespuesta(task.Result, service + "Result", response);
                 }
             }
             catch (AggregateException ex)
             {
                 throw ex.InnerException;
             }
-            // 71 o 6 
+
+            //Null 71 o 16 
             if (ResponseXml.ResponseCode == "6" || ResponseXml.ResponseCode == "71")
+            {        
+                string codeResponse = CR_TN_SERV(xmlData);
+                if (EnumPrueba.TN_Cod(codeResponse)!= "")
+                {
+                    return Content(codeResponse);
+                }
+            }
+            
+            if (ResponseXml.ResponseCode != "0")
             {
-                return CR_TN_SERV(ResponseXml);
+                return Content(ResponseXml.DescripcionCode);
             }
            
-            
-            return Content(TNClass.jString(ResponseXml));
-        } 
-
+            //InsertSuccessfulTransaction(2,ResponseXml.SKU,ResponseXml.PhoneNumber, decimal.Parse(ResponseXml.Monto));
+            //Tiket
+            string Ticket =
+"NO. TRANSACCIÓN:  " + ResponseXml.TransNumber + Environment.NewLine + "NO. AUTORIZACIÓN: " + ResponseXml.AutoNo + Environment.NewLine +
+"MONTO:            " + producto.Monto + Environment.NewLine + "TELEFONO:         " + ResponseXml.PhoneNumber + Environment.NewLine +
+"FECHA Y HORA DE LA TRANSACCIÓN: " + ResponseXml.Datetime + Environment.NewLine +
+ ResponseXml.ResponseCode + ":" + ResponseXml.DescripcionCode;
+            return Content(Ticket);
+        }
 
 
         [HttpPost("Consultar_TN")]
-        public IActionResult CR_TN_SERV(MyRelReq ResponseXml)
-        {         
-            var reader = new StreamReader(Request.Body);
-            var Body = reader.ReadToEnd();
-            string JsonContent = Body;
-            var ArrP = JArray.Parse(JsonContent);
-            var ArrH = JArray.Parse(ArrP[0].ToString());
-            dynamic data = JObject.Parse(ArrH[0].ToString());
-            xmlData.SKU = data.SKU;
-            xmlData.PhoneNumber = data.Referencia;
-           
-          
-      
-            // string a = Metodo(xmlData);
-            string service = "getQueryClass";
-            string response = "QueryResponse";
-            //Si existe producto desde la BD lo agrega
-            if (xmlData.ID_Product != null)
-            {
-                service = "getQueryDatClass";
-                response = "DataQueryResponse";
-                
-            }
-         //   MyRelReq ResponseXml = new MyRelReq();
-            
-            xmlData.Datetime= DateTime.Now;
-            var item = _context.conexion_Configs.Find(2);
-            //string xml = GetResponse(service, xmlData);
+        public string CR_TN_SERV(MyRelReq xmlData)
+        {
+            MyRelReq xmlRequest = new MyRelReq();
+            var servicio = "getQueryClass";
 
-            string[] credentials = new string[] { item.Url, item.Usr, item.Pwd };
-            var task = Task.Run(() => { return TNClass.Send_Request(service, xmlData,credentials);});
-            try
+            //Si existe producto desde la BD lo agrega
+            if (xmlData.ID_Product != "")
             {
-                var success = task.Wait(50000);
-                if (!success)
-                {
-                  return Content("Lo sentimos el servicio tardo mas de los esperado :( ");   
-                }
-                else
-                {
-                    ResponseXml = TNClass.Deserializer_Response(task.Result, service + "Result", response);
-                }
+                xmlRequest.ID_Product = xmlData.ID_Product;
+                servicio = "getQueryDatClass";
             }
-            catch (AggregateException ex)
+            xmlRequest.PhoneNumber = xmlData.ID_Product;
+            xmlRequest.PhoneNumber = xmlData.PhoneNumber;
+            xmlRequest.SKU = xmlData.SKU;
+            xmlRequest.TC = xmlData.TC;
+            xmlRequest.TransNumber = xmlData.TransNumber;
+
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.LoadXml(GetResponse(servicio,xmlRequest));
+            XmlNodeList nodeList = xmldoc.GetElementsByTagName(servicio + "Result");
+
+            string xml = "";
+            foreach (XmlNode node in nodeList)
             {
-                throw ex.InnerException;
-            }     
-            return Content(TNClass.jString(ResponseXml));
+                xml = node.InnerText;
+            }
+            xmldoc.LoadXml(TNClass.Des_ScapeXML(xml));
+            nodeList = xmldoc.GetElementsByTagName("ResponseCode");
+
+            string x="";
+            foreach (XmlNode node in nodeList)
+            {
+                x = node.InnerText;
+            }
+
+           // InsertSuccessfulTransaction(2, xmlData.SKU, xmlData.PhoneNumber, Decimal.Parse(xmlData.Monto));
+
+            return x;
         }
 
-        protected void SaveXML(MyRelReq xmlDatos)
+        //Aqui sucede la magia :v
+        public string GetResponse(string servicio,MyRelReq xmlQueryRequest)
         {
-            var Transaction = _context.Set<Transaccion2>();
+            var sXML = TNClass.GetXMLs(xmlQueryRequest, servicio);
+            var item = _context.conexion_Configs.Find(2);
+            HttpWebRequest webRequest = TNClass.CreateWebRequest(item.Url, "http://www.pagoexpress.com.mx/ServicePX/" + servicio, item.Usr, item.Pwd);
+            XmlDocument soapEnvelopeXml = TNClass.CreateSoapEnvelope(servicio, sXML);
+            TNClass.InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+            asyncResult.AsyncWaitHandle.WaitOne();
+            string soapResult="";
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+                {
+                    using (StreamReader rd = new StreamReader(webResponse.GetResponseStream()))
+                    {
+                        soapResult = rd.ReadToEnd();
+                    }
+                  //  Thread.Sleep(20000);
+                }
+            return soapResult;
+        }
+
+        protected void InsertSuccessfulTransaction(int Proveedor, string SKU, string Reference, decimal Amount, decimal Comision=0, long NTransaction=0, long NAutoritation=0)
+        {
+            var Transaction = _context.Set<Transaccion>();
             Transaction.Add(
-                              new Transaccion2
+                              new Transaccion
                               {
-                                  SKU = xmlDatos.SKU,
-                                  ID_GRP = xmlDatos.ID_GRP,
-                                  ID_CHAIN = xmlDatos.ID_CHAIN,
-                                  ID_MERCHANT = xmlDatos.ID_MERCHANT,
-                                  ID_COUNTRY = xmlDatos.ID_COUNTRY,
-                                  ID_POS = xmlDatos.ID_POS,
-                                  ID_Product = xmlDatos.ID_Product,
-                                  Referencia= xmlDatos.PhoneNumber,
-                                  ID_CONFIG= 2,
-                                  Fecha=xmlDatos.Datetime,
-                                  TransNumber=xmlDatos.TransNumber,
-                                  TC=xmlDatos.TC,
-                                  Brand=xmlDatos.Brand,
-                                  Instr1=xmlDatos.Instr1,
-                                  Instr2=xmlDatos.Instr2,
-                                  ResponseCode=xmlDatos.ResponseCode,
-                                  DescripcionCode=xmlDatos.DescripcionCode,
-                                  AutoNo=xmlDatos.AutoNo,
-                                  Monto=Decimal.Parse(xmlDatos.Monto)
+
+                                  FechaTx = DateTime.Now,
+                                  Sku = SKU,
+                                  NAutorizacion = NAutoritation,
+                                  Referencia = Reference,
+                                  Monto = Amount,
+                                  Comision = Comision,
+                                  ConfigID = Proveedor,
+                                  TiendaID = 1,
+                                  CajaID = 1,
+                                  NoTransaccion = NTransaction
                               }
-                             
-                            
                            );
             _context.SaveChanges();
         }
+
     }
-
-
 }

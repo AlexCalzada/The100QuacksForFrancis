@@ -12,14 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Models\TnClass.cs" />
-    <Compile Remove="Requests\ModuleTadenor\TNClass_Enviar.cs" />
+    <Compile Remove="Payments\Services.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Filters\" />
-    <Folder Include="Middlewares\Extensions\" />
+    <Folder Include="Formatters\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
@@ -32,6 +31,7 @@
     <PackageReference Include="System.ServiceModel.Http" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="4.4.*" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,9 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="PXSecurity">
-      <HintPath>..\..\..\..\..\Desktop\WServices\Diestel\PXSecurity (com)\PXSecurity.dll</HintPath>
-    </Reference>
+    <None Include="Payments\Services.cs" />
   </ItemGroup>
 
   <ItemGroup>
