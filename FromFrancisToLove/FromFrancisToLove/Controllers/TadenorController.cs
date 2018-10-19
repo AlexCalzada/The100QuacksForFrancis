@@ -60,33 +60,6 @@ namespace FromFrancisToLove.Controllers
                 "{\"sCampo\":\"CONFIGID\", \"iTipo\":0, \"iLongitud\":0, \"iClase\":0, \"sValor\":\"" + item.CONFIGID + "\", \"bEncriptado\":true}" +
                 "]";
             return Content(respuesta);
-
-
-
-            /*
-                        var reader = new StreamReader(Request.Body);
-                        var Body = reader.ReadToEnd();
-                        string JsonContent = Body;
-                        var ArrP = JArray.Parse(JsonContent);
-                        var ArrH = JArray.Parse(ArrP[0].ToString());
-                        foreach (var sJson in ArrH)
-                        {
-                            dynamic data = JObject.Parse(sJson.ToString());
-
-                            string Sku = data.SKU;
-
-                                var item = _context.catalogos_Productos.First(b => b.SKU == Sku);
-                                return Content("{\"" + nameof(item.SKU) + "\":\"" + item.SKU + "\", \"IdProduct\":\"" + item.IDProduct + "\", \"Monto\":\"" + item.Monto + "\", \"Marca\":\"" + item.Marca + "\", \"CONFIGID\":\"" + item.CONFIGID + "\"}");
-
-                        }
-                        return Content("");
-                      */
-
-
-
-
-
-
         }
 
         [HttpPost("{id}/{sku}/{reference}")]
@@ -136,6 +109,7 @@ namespace FromFrancisToLove.Controllers
         public IActionResult TN_Service()
         {
 
+            
             var reader = new StreamReader(Request.Body);
             var Body = reader.ReadToEnd();
             string JsonContent = Body;

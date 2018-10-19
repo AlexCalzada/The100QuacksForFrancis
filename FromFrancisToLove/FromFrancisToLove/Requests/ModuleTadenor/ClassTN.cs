@@ -24,7 +24,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             // Crea el xml de acuerdo  al procesos, ya sea  Recarga o consulta
             var sXML = Get_XMLs(xmlQuery, servicio);
 
-            HttpWebRequest webRequest = CreateWebRequest(credencial[0], "http://www.pagoexpress.com.mx/ServicePX/" + servicio, credencial[1], credencial[2]);
+            HttpWebRequest webRequest = CreateWebRequest(credencial[0], "http://www.pagoexpress.com.mx/ServicePX/" +servicio, credencial[1], credencial[2]);
 
             XmlDocument soapEnvelopeXml = CreateSoapEnvelope(servicio, sXML);
             InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
@@ -53,7 +53,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
                 xml = node.InnerText;
             }
             xml = xml.Replace(response, "MyRelReq");
-            xmldoc.LoadXml(Des_ScapeXML(xml));
+            xmldoc.LoadXml(Un_ScapeXML(xml));
             nodeList = xmldoc.GetElementsByTagName("ResponseCode");
 
             XmlSerializer xmls = new XmlSerializer(typeof(MyRelReq));
@@ -127,7 +127,7 @@ namespace FromFrancisToLove.Requests.ModuleTadenor
             return sXML;
         }
 
-        private string Des_ScapeXML(string sXML)
+        private string Un_ScapeXML(string sXML)
         {
             sXML = sXML.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&quot;", "\"").Replace("&apos;", "'");
             return sXML;

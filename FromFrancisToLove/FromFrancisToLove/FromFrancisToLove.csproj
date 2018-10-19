@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Payments\Services.cs" />
+    <Compile Remove="Payments\Backend\Services\PaymentServiceaa.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,10 +36,6 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Payments\Services.cs" />
   </ItemGroup>
 
   <ItemGroup>

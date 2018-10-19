@@ -248,7 +248,7 @@ namespace FromFrancisToLove.Diestel.Clases
                                    //Se debera devolver un "ticket"
                                    //demostrando el motivo del rechazo
                                    //de la operacion
-                                   //
+                                   //q
                                    // Devolver un JSON a la Front-End
                                 }
                                 else if((int)item.sValor == 8 || (int)item.sValor == 71 || (int)item.sValor == 72)
