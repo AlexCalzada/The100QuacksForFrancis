@@ -35,7 +35,7 @@ namespace FromFrancisToLove.Controllers
         [HttpPost("RequestService")]
         public IActionResult Put(string SKU,string Reference)
         {
-            int id_credentials=0;
+            int id_credentials = 0;
             switch (SKU.Split("-")[0].ToString())
             {
                 case "DT":
@@ -44,26 +44,23 @@ namespace FromFrancisToLove.Controllers
                 case "TN":
                     id_credentials = 2;
                     break;
-                
             }
 
-            if (id_credentials==0)
+            if (id_credentials == 0)
             {
-                return Ok("");
+                return NotFound("");
             }          
                 var cnx = _context.conexion_Configs.Find(id_credentials);
                 PaymentsService Payment = new PaymentsService(cnx.Url, cnx.Usr, cnx.Pwd,cnx.CrypKey);
                 Payment.Config(7, 1, 1, 1);
 
                 var fields = Payment.PaymentInfo(SKU, Reference);
-                return Ok(Payment.PaymentInfo(SKU, Reference));
+                return Ok(fields);
 
         }
         [HttpPost("PayService")]
         public IActionResult PayService()
         {
-           
-
             var reader = new StreamReader(Request.Body);
             var body = reader.ReadToEnd();
             string jsonContent = body;
@@ -81,7 +78,6 @@ namespace FromFrancisToLove.Controllers
             ResponseService response = null;
 
             var lsFields = JsonConvert.DeserializeObject<List<Field>>(fields);
-
 
             int id_credentials = 0;
 
@@ -141,10 +137,5 @@ namespace FromFrancisToLove.Controllers
             response = credentials.Check(lsFields);
             return Ok(response);
         }
-
-
- 
-
-
     }
 }

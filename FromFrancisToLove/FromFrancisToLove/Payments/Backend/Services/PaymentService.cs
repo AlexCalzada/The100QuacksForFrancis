@@ -102,6 +102,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     string[] sp = ExtensionMethods.ExtSKU.SeparateSku(SKU);
                     string Prefix = sp[0];
                     string Sku = sp[1];
+                    long Transaction = 1;
 
                     List<Field> lsFields = null;
                     var Config = new Dictionary<string, int>();
@@ -114,15 +115,21 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     if (Prefix == "DT")
                     {
                         // Transacción: 1
-                        RequestActiveService request = new RequestActiveService(Config, Sku, Reference, "1", User, Password, EncryptedKey);
+                        RequestActiveService request = new RequestActiveService(Config, Sku, Reference, Transaction, User, Password, EncryptedKey);
                         var info = request.RequestService();
                         var response = info.response;
+                        bool IsSuccess = info.status;
 
-                        response = ReplaceFormat.ReplaceFrom(response, "ToListFields");
+                        if (IsSuccess)
+                        {
+                            response = ReplaceFormat.ReplaceFrom(response, "ToListFields");
 
-                        var root = JArray.Parse(response);
-                        lsFields = JsonConvert.DeserializeObject<List<Field>>(root.ToString());
+                            var root = JArray.Parse(response);
+                            lsFields = JsonConvert.DeserializeObject<List<Field>>(root.ToString());
+
+                        }
                     }
+                    return lsFields;
                 }
                 return new List<Field>();
             }
@@ -130,6 +137,8 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
             public ResponseService Request(List<Field> Fields)
             {
+                if (!IsConfigured) throw new Exception();
+
                 string _Prefix="";
                 foreach (var item in Fields)
                 {
@@ -183,9 +192,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                             {
                                 R_Service.AuthorizeCode = Convert.ToInt32(item.Value);
                             }
-                            
-
-
                         }
                     }
                 }
@@ -205,8 +211,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                 }
                 return R_Service;
                 }
-
-                if (!IsConfigured) throw new Exception();
 
                 else if ( _Prefix=="DT")
                 {
@@ -233,8 +237,8 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                     if (responseService.Success)
                     {
-                        responseService.XML = "N/A";
-                        responseService.ResponseCode = 1001;
+                        responseService.XML = x.response;
+                        responseService.ResponseCode = 0;
                     
                         string jsonCampos = x.response;
                         jsonCampos = ReplaceFormat.ReplaceFrom(jsonCampos, "ToListFields");
@@ -253,7 +257,21 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     }
                     else if (!responseService.Success)
                     {
+                        responseService.XML = "N/A";
 
+                        var stCampos = x.response;
+                        stCampos = stCampos.ReplaceFrom("ToListFields");
+                        var lsFields = JsonConvert.DeserializeObject<List<Field>>(stCampos);
+                        responseService.Fields = lsFields;
+
+                        foreach (var item in lsFields)
+                        {
+                            if (item.Name == "CODIGORESPUESTA")
+                            {
+                                responseService.ResponseCode = int.Parse(item.Value.ToString());
+                                break;
+                            }
+                        }
                     }
 
                     return responseService;
@@ -264,6 +282,8 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
             public ResponseService Check(List<Field> Fields)
             {
+                if (!IsConfigured) throw new Exception();
+
                 string _Prefix = "";
                 foreach (var item in Fields)
                 {
@@ -288,7 +308,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                     }
                     return TN.TN_Query(Fields, Datos, Url, User, Password);
-                    //TN Consulta
                 }
 
                 if (_Prefix == "DT")
@@ -307,7 +326,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     if (responseService.Success)
                     {
                         responseService.XML = "N/A";
-                        responseService.ResponseCode = 1001;
+                        responseService.ResponseCode = 0;
 
                         string jsonCampos = response.Response;
                         jsonCampos = ReplaceFormat.ReplaceFrom(jsonCampos, "ToListFields");
@@ -328,8 +347,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     return responseService;
                 }
 
-                if (!IsConfigured) throw new Exception();
-
                 return new ResponseService();
 
             }
@@ -339,7 +356,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                 if (!IsConfigured) throw new Exception();
 
-                if (true/*"DT"*/)
+                if (true)
                 {
                     string fields = JsonConvert.SerializeObject(Fields);
                     fields = ReplaceFormat.ReplaceFrom(fields, "ToListCampos");
@@ -389,9 +406,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     }
                     return responseService;
                 }
-
-                return new ResponseService();
-
             }
         }
     }
@@ -606,7 +620,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
         private string Password;
         private string EncryptionKey;
 
-        public RequestActiveService(Dictionary<string, int> Config, string _Sku, string _Reference, string tx, string _User, string _Pwd, string _EKey)
+        public RequestActiveService(Dictionary<string, int> Config, string _Sku, string _Reference, long tx, string _User, string _Pwd, string _EKey)
         {
             //Datos de la configuracion
             this.Config["Group"] = Config["Group"];
@@ -617,7 +631,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
             SKU = _Sku;
             Reference = _Reference;
-            currentTransaction = long.Parse(tx);
+            currentTransaction = (tx);
             User = _User;
             Password = _Pwd;
             EncryptionKey = _EKey;
@@ -733,7 +747,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                     }
 
-                    List<cCampo> lsCampos = null;
+                    var lsCampos = new List<cCampo>();
 
                     if (response.Length > 0)
                     {
@@ -801,22 +815,20 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
         public (string response, string request, bool status) PayService(List<cCampo> campos)
         {
-            foreach (var campo in campos)
+            for (int i = campos.Count - 1; i >= 0; i--)
             {
-                int count = 0;
-                if (campo.sCampo == "SKU")
+                if (campos[i].sCampo == "SKU" || campos[i].sCampo == "TIPOPAGO")
                 {
-                    count = campos.IndexOf(campo);
-                    SKU = campo.sValor.ToString();
-                    campos.RemoveAt(count);
-                    count = 0;
-                }
-                if (campo.sCampo == "TIPOPAGO")
-                {
-                    count = campos.IndexOf(campo);
-                    PaymentType = campo.sValor.ToString();
-                    campos.RemoveAt(count);
-                    count = 0;
+                    switch (campos[i].sCampo)
+                    {
+                        case "SKU":
+                            SKU = campos[i].sValor.ToString();
+                            break;
+                        case "TIPOPAGO":
+                            PaymentType = campos[i].sValor.ToString();
+                            break;
+                    }
+                    campos.RemoveAt(i);
                 }
             }
 
@@ -986,7 +998,9 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         if (isTaskFinished)
                         {
                             response = task.Result;
-                            break;
+
+                            listRequest = listRequest.Union(response).ToList();
+                            
                         }
                         else
                         {
@@ -1021,20 +1035,21 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                                 if (codeResponse == 47)
                                 {
-                                    //Se debera devolver un "ticket"
-                                    //demostrando el motivo del rechazo
-                                    //de la operacion
-                                    //
-                                    // Devolver un JSON a la Front-End
+                                    string r = JsonConvert.SerializeObject(listReverse);
+                                    return (r, jsRequest, false);
                                 }
-                                else if (codeResponse == 8 || codeResponse == 71 || codeResponse == 72)
+                                if (codeResponse == 8 || codeResponse == 71 || codeResponse == 72)
                                 {
                                     //Proceso de reversas
                                     CancelationService cancelation = new CancelationService(Config, User, Password, EncryptedKey);
                                     var cancel = cancelation.Reverses(listReverse);
                                     return (cancel.result, jsRequest, false);
                                 }
-                                return (codeResponse.ToString(), jsRequest, false);
+                                else
+                                {
+                                    string r = JsonConvert.SerializeObject(listReverse);
+                                    return (r, jsRequest, false);
+                                }
                             }
                         }
                     }
@@ -1047,7 +1062,8 @@ namespace FromFrancisToLove.Payments.Backend.Services
                 //Lista con los campos que se le van a presentar 
                 // a la front-end
                 var listCampos = new List<cCampo>();
-                foreach (var wsCampo in response)
+                //foreach (var wsCampo in response)
+                foreach (var wsCampo in listRequest)
                 {
                     if (wsCampo.sCampo == "REFERENCIA")
                     {
@@ -1394,7 +1410,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                 cCampo[] response = null;
 
-                cCampo[] requestCheck = new cCampo[10];
+                cCampo[] requestCheck = new cCampo[11];
 
                 requestCheck[0] = new cCampo();
                 requestCheck[0].iTipo = eTipo.NE;
@@ -1489,7 +1505,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                     }
 
-                    List<cCampo> lsCampos = null;
+                    var lsCampos = new List<cCampo>();
 
                     if (response.Length > 0)
                     {
