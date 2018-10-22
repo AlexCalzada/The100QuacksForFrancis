@@ -740,10 +740,19 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                         else
                         {
-                            //SE incremetnaran los intentos hasta obtener una respuesta
-                            attempts++;
+                            if (attempts == 3)
+                            {
+                                //Realizar una actualizacion en la tabla Transacciones con la cantidad de intentos realizados [3]
+                            }
+                            else
+                            {
+                                //SE incremetnaran los intentos hasta obtener una respuesta
+                                attempts++;
 
-                            task = Task.Run(() => wservice.InfoAsync(requestInfo));
+                                //Actualizar tabla [Transaccion] con el intento
+
+                                task = Task.Run(() => wservice.InfoAsync(requestInfo));
+                            }
                         }
                     }
 
@@ -1004,12 +1013,19 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                         else
                         {
-                            //SE incremetnaran los intentos hasta obtener una respuesta
-                            attempts++;
+                            if (attempts == 3)
+                            {
+                                //Realizar una actualizacion en la tabla Transacciones con la cantidad de intentos realizados [3]
+                            }
+                            else
+                            {
+                                //SE incremetnaran los intentos hasta obtener una respuesta
+                                attempts++;
 
-                            //Actualizar tabla [Transaccion] con el intento
+                                //Actualizar tabla [Transaccion] con el intento
 
-                            task = Task.Run(() => wservice.EjecutaAsync(requestEjecuta));
+                                task = Task.Run(() => wservice.EjecutaAsync(requestEjecuta));
+                            }
                         }
                     }
 
@@ -1244,12 +1260,19 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                         else
                         {
-                            //SE incremetnaran los intentos hasta obtener una respuesta
-                            attempts++;
+                            if (attempts == 3)
+                            {
+                                //Realizar una actualizacion en la tabla Transacciones con la cantidad de intentos realizados [3]
+                            }
+                            else
+                            {
+                                //SE incremetnaran los intentos hasta obtener una respuesta
+                                attempts++;
 
-                            //Actualizar tabla [Transaccion] con el intento
+                                //Actualizar tabla [Transaccion] con el intento
 
-                            task = Task.Run(() => wservice.ReversaAsync(requestReversa));
+                                task = Task.Run(() => wservice.ReversaAsync(requestReversa));
+                            }
                         }
                     }
 
@@ -1273,7 +1296,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                     response = wex.ToString();
                     return (response, false);
                 }
-
             }
             catch (Exception ex)
             {
@@ -1500,8 +1522,19 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         }
                         else
                         {
-                            attempts++;
-                            task = Task.Run(() => wservice.InfoAsync(requestCheck));
+                            if (attempts == 3)
+                            {
+                                //Realizar una actualizacion en la tabla Transacciones con la cantidad de intentos realizados [3]
+                            }
+                            else
+                            {
+                                //SE incremetnaran los intentos hasta obtener una respuesta
+                                attempts++;
+
+                                //Actualizar tabla [Transaccion] con el intento
+
+                                task = Task.Run(() => wservice.InfoAsync(requestCheck));
+                            }
                         }
                     }
 
