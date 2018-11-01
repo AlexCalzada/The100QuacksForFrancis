@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Payments\Backend\Services\DiestelService.cs" />
     <Compile Remove="Payments\Backend\Services\PaymentServiceaa.cs" />
   </ItemGroup>
 

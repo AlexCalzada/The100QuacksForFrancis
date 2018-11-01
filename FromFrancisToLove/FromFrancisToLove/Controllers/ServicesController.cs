@@ -54,7 +54,7 @@ namespace FromFrancisToLove.Controllers
                 PaymentsService Payment = new PaymentsService(cnx.Url, cnx.Usr, cnx.Pwd,cnx.CrypKey);
                 Payment.Config(7, 1, 1, 1);
 
-                var fields = Payment.PaymentInfo(SKU, Reference);
+                var fields = Payment.PaymentInfo(SKU.Split("-")[1].ToString(), Reference);
                 return Ok(fields);
 
         }

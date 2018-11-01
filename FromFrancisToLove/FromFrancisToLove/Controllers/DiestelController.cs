@@ -17,6 +17,8 @@ using System.Data;
 using System.Collections;
 using FromFrancisToLove.Diestel.Clases;
 using System.IO;
+using static FromFrancisToLove.Payments.Backend.Services.Finfit;
+using FromFrancisToLove.Payments.Backend.Services;
 
 namespace FromFrancisToLove.Controllers
 {
@@ -38,7 +40,7 @@ namespace FromFrancisToLove.Controllers
             int service = 0;
 
             //Separamos el prefijo y el sku
-            string[] values = ExtSKU.SeparateSku(SKU);
+            string[] values = ExtensionMethods.ExtSKU.SeparateSku(SKU);
 
             string sPrefix = values[0];
 
@@ -107,7 +109,7 @@ namespace FromFrancisToLove.Controllers
                 };
 
                 //Mandamos los datos por el constructor
-                RequestActiveService request = new RequestActiveService(data);
+                Diestel.Clases.RequestActiveService request = new Diestel.Clases.RequestActiveService(data);
 
                 //Guardamos el resultado del WS
                 var x = request.RequestService();
@@ -147,7 +149,7 @@ namespace FromFrancisToLove.Controllers
                 string wSKU = fData.SKU;
                 string JReference = fData.Referencia;
 
-                string[] values = ExtSKU.SeparateSku(wSKU);
+                string[] values = ExtensionMethods.ExtSKU.SeparateSku(wSKU);
                 string JPrefix = values[0];
                 string JSku = values[1];
 
@@ -194,8 +196,8 @@ namespace FromFrancisToLove.Controllers
                         currentTransaction.ToString()
                     };
 
-                    
-                    PayServiceDiestel psd = new PayServiceDiestel(data);
+
+                    Diestel.Clases.PayServiceDiestel psd = new Diestel.Clases.PayServiceDiestel(data);
 
                     var pay = psd.PayService(campos);
 
@@ -215,16 +217,87 @@ namespace FromFrancisToLove.Controllers
         [HttpGet("TestService")]
         public IActionResult TestService()
         {
-            try
+            var dt = new Class_DT();
+
+            var cnx = _context.conexion_Configs.Find(1);
+
+            string[] credentials = { cnx.Url, "Info", cnx.Usr, cnx.Pwd, cnx.CrypKey };
+
+            Field[] fields = new Field[3];
+            fields[0] = new Field();
+            fields[0].Name = "SKU";
+            fields[0].Value = "8469760000019";
+            fields[1] = new Field();
+            fields[1].Name = "REFERENCIA";
+            fields[1].Value = "8666346991";
+            fields[2] = new Field();
+            fields[2].Name = "TRANSACCION";
+            fields[2].Value = 1;
+
+            var listF = new List<Field>();
+            foreach (var item in fields)
             {
-                DbCrud crud = new DbCrud(_context);
-                var test = crud.CheckTransaction(1);
-                return Ok($"Transaccion actual: {test.currentTransaction}| Estado: {test.estatus}");
+                listF.Add(item);
             }
-            catch (Exception ex)
-            {
-                return Ok(ex.ToString());
-            }
+
+
+            var xml = dt.Send_Request("Info", credentials, listF);
+
+
+
+            return Ok(xml);
+
         }        
+
+        [HttpPost("Info")]
+        public IActionResult Info(string SKU, string Reference)
+        {
+        //    int service = 0;
+
+        //    switch (SKU.Split('-')[0].ToString())
+        //    {
+        //        case "DT":
+        //            service = 1;
+        //            break;
+        //        case "TN":
+        //            service = 2;
+        //            break;
+        //    }
+
+        //    if (service == 0)
+        //    {
+        //        return NotFound();
+        //    }
+
+            var cnx = _context.conexion_Configs.Find(1);
+
+            var Payments = new PaymentsService(cnx.Url, cnx.Usr, cnx.Pwd, cnx.CrypKey);
+            Payments.Config(7, 1, 1, 1);
+
+            var fields = Payments.PaymentInfo(SKU.Split('-')[1].ToString(), Reference);
+
+
+            return Ok(fields);
+        }
+
+        [HttpPost("Ejecuta")]
+        public IActionResult Ejecuta()
+        {
+            var dt = new Class_DT();
+            var reader = new StreamReader(Request.Body);
+            var body = reader.ReadToEnd();
+            body = dt.ReplaceFrom(body);
+            var root = JArray.Parse(body);
+            
+            var cnx = _context.conexion_Configs.Find(1);
+            List<Field> fields = null;
+            fields = JsonConvert.DeserializeObject<List<Field>>(root[0].ToString());
+
+            var payments = new PaymentsService(cnx.Url, cnx.Usr, cnx.Pwd, cnx.CrypKey);
+            payments.Config(7, 1, 1, 1, 1);
+
+            var response = payments.Request(fields);
+            return Ok(response);
+        }
     }
 }

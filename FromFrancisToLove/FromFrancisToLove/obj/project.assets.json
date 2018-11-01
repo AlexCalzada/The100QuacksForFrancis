@@ -13526,12 +13526,14 @@
       ]
     },
     "System.ValueTuple/4.5.0": {
-      "sha512": "xZtSZNEHGa+tGsKuP4sh257vxJ/yemShz4EusmomkynMzuEDDjVaErBNewpzEF6swUgbcrSQAX3ELsEp1zCOwA==",
+      "sha512": "fa3P1cPe2SlrjCjJ/yc3mcXkDj4GQORmileNFYBtBZh2qddzwRubagAkj8yz/yF9oLvJVqaZYar9l2SCqNKDJg==",
       "type": "package",
       "path": "system.valuetuple/4.5.0",
       "files": [
         ".signature.p7s",
         "LICENSE.TXT",
+        "System.ValueTuple.4.5.0.nupkg.sha512",
+        "System.ValueTuple.nuspec",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -13562,8 +13564,6 @@
         "ref/xamarinmac20/_._",
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._",
-        "system.valuetuple.4.5.0.nupkg.sha512",
-        "system.valuetuple.nuspec",
         "useSharedDesignerContext.txt",
         "version.txt"
       ]

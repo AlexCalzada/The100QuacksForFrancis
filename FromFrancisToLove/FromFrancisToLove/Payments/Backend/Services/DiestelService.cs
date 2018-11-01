@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using static FromFrancisToLove.Payments.Backend.Services.Finfit;
+using static FromFrancisToLove.Payments.Backend.Services.DiestelService;
 
 namespace FromFrancisToLove.Payments.Backend.Services
 {
-    public class Finfit
+    public class DiestelService
     {
         public class Field
         {
@@ -34,10 +34,10 @@ namespace FromFrancisToLove.Payments.Backend.Services
         public class ResponseService
         {
             public int AuthorizeCode { get; set; }
-            public List<Field> Fields { get; set; }
-            public string XML { get; set; }
+            public List<Field> Fields { get; set; } //Mezclados, los que se envia y los que se reciben 
+            public string XML { get; set; } //OrException// el que se recibe
             public bool Success { get; set; }
-            public int ResponseCode { get; set; }
+            public int ResponseCode { get; set; } //1000+ for exceptions
         }
 
         public class PaymentsService
@@ -78,88 +78,42 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                 string[] credentials = { Url, User, Password, EncryptedKey };
                 int[] config = { Group, Chain, Merchant, POS, Cashier };
-                List<Field> fields = new List<Field>
-                {
-                    new Field() { Name = "TRANSACCION", Value = 1, Length = 0, Type = 1, Class = 0, Encrypt = false },
-                    new Field() { Name = "SKU", Value = SKU, Length = 0, Type = 0, Class = 0, Encrypt = false },
-                    new Field() { Name = "REFERENCIA", Value = Reference, Length = 0, Type = 0, Class = 0, Encrypt = true }
-                };
+
+                List<Field> fields = new List<Field>();
+                fields.Add(new Field() { Name = "TRANSACCION", Value = 1, Length = 0, Type = 0, Class = 0, Encrypt = false });
+                fields.Add(new Field() { Name = "SKU", Value = SKU, Length = 0, Type = 0, Class = 0, Encrypt = false });
+                fields.Add(new Field() { Name = "REFERENCIA", Value = Reference, Length = 0, Type = 0, Class = 0, Encrypt = true });
+
                 var _DT = new Class_DT();
+
                 var task = Task.Run(() => { return _DT.Send_Request("Info", credentials, fields, config); });
-                int attempts = 1;
-                for (int i = 0; i < 3; i++)
+
+                try
                 {
-                    try
+                    var success = task.Wait(45000);
+                    if (success)
                     {
-                        var success = task.Wait(45000);
-                        if (success)
+                        var x = _DT.GetFieldsFromXml(task.Result.response);
+
+                        var responseService = new ResponseService();
+
+                        if (x.field.Count > 0)
                         {
-                            var x = _DT.GetFieldsFromXml(task.Result.response);
-
-                            // Datos que se deben volver a enviar al WS
-                            // [SKU] [Referencia] [TipoPago] [Transaccion]
-                            var persistData = _DT.persistData;
-                            
-                            var responseService = new ResponseService();
-
-
-                            bool referenceExists = false;
-                            bool skuExists = false;
-
-                            if (x.field.Count > 0)
+                            foreach (var item in x.field)
                             {
-                                foreach (var item in x.field)
+                                if (item.Name == "REFERENCIA")
                                 {
-                                    if (item.Name == "REFERENCIA")
-                                    {
-                                        item.Value = Class_DT.Decrypt(item.Value.ToString(), EncryptedKey);
-                                        referenceExists = x.field.Contains(item);
-                                    }
-                                    if (item.Name == "SKU")
-                                    {
-                                        skuExists = x.field.Contains(item);
-                                    }
+                                    item.Value = _DT.Decrypt(item.Value.ToString(), EncryptedKey);
                                 }
-
-                                if (referenceExists == true && skuExists == false)
-                                {
-                                    x.field.Add(new Field() { Name = "SKU", Value = persistData[0], Length = 13, Type = 0, Class = 0, Encrypt = false });
-                                    x.field.Add(new Field() { Name = "TRANSACCION", Value = persistData[2], Length = 8, Type = 0, Class = 1, Encrypt = false });
-                                    x.field.Add(new Field() { Name = "TIPOPAGO", Value = persistData[3], Length = 4, Type = 0, Class = 0, Encrypt = true });
-                                }
-                                else if(referenceExists == false && skuExists == true)
-                                {
-                                    x.field.Add(new Field() { Name = "TRANSACCION", Value = persistData[2], Length = 8, Type = 1, Class = 0, Encrypt = false });
-                                    x.field.Add(new Field() { Name = "REFERENCIA", Value = persistData[1], Length = 30, Type = 0, Class = 0, Encrypt = true });
-                                    x.field.Add(new Field() { Name = "TIPOPAGO", Value = persistData[3], Length = 4, Type = 0, Class = 0, Encrypt = true });
-                                }
-                                else if (referenceExists == false && skuExists == false)
-                                {
-                                    x.field.Add(new Field() { Name = "SKU", Value = persistData[0], Length = 13, Type = 0, Class = 0, Encrypt = false });
-                                    x.field.Add(new Field() { Name = "TRANSACCION", Value = persistData[2], Length = 8, Type = 1, Class = 1, Encrypt = false });
-                                    x.field.Add(new Field() { Name = "REFERENCIA", Value = persistData[1], Length = 30, Type = 0, Class = 0, Encrypt = true });
-                                    x.field.Add(new Field() { Name = "TIPOPAGO", Value = persistData[3], Length = 4, Type = 0, Class = 0, Encrypt = true });
-                                }
-
-                                return x.field;
-                            }
-                        }
-                        else
-                        {
-                            attempts++;
-
-                            if (attempts == 3)
-                            {
-                                return new List<Field>();
                             }
 
-                            task = Task.Run(() => { return _DT.Send_Request("Info", credentials, fields, config); });
+                            return x.field;
                         }
                     }
-                    catch (AggregateException ex)
-                    {
-                        throw ex.InnerException;
-                    }
+                }
+                catch (AggregateException ex)
+                {
+                    throw ex.InnerException;
                 }
 
                 return new List<Field>();
@@ -168,85 +122,50 @@ namespace FromFrancisToLove.Payments.Backend.Services
             public ResponseService Request(List<Field> Fields)
             {
                 if (!IsConfigured) throw new Exception();
+
                 string[] credentials = { Url, User, Password, EncryptedKey };
                 int[] config = { Group, Chain, Merchant, POS, Cashier };
+
                 var _DT = new Class_DT();
+
                 var task = Task.Run(() => { return _DT.Send_Request("Ejecuta", credentials, Fields, config); });
-                int attempts = 0;
 
-                for (int i = 0; i < 3; i++)
+                try
                 {
-                    try
+                    var success = task.Wait(45000);
+                    if (success)
                     {
-                        var success = task.Wait(45000);
-                        if (success)
+                        var x = _DT.GetFieldsFromXml(task.Result.response);
+                        var responseService = new ResponseService();
+
+                        if (x.field.Count > 0)
                         {
-                            var x = _DT.GetFieldsFromXml(task.Result.response);
-                            var responseService = new ResponseService();
-
-                            if (x.field.Count > 0)
+                            responseService.Success = true;
+                            responseService.XML = x.xmlResponse;
+                            foreach (var item in x.field)
                             {
-                                responseService.Success = true;
-                                responseService.XML = task.Result.request;
-                                responseService.ResponseCode = 0;
-
-                                if (attempts >= 3)
+                                switch (item.Name)
                                 {
-                                   return Cancel(x.field);
+                                    case "CODIGORESPUESTA":
+                                        responseService.ResponseCode = int.Parse(item.Value.ToString());
+                                        break;
+                                    case "AUTORIZACION":
+                                        responseService.AuthorizeCode = int.Parse(item.Value.ToString());
+                                        break;
+                                    case "REFERENCIA":
+                                        item.Value = _DT.Decrypt(item.Value.ToString(), EncryptedKey);
+                                        break;
                                 }
-
-                                foreach (var item in x.field)
-                                {
-                                    switch (item.Name)
-                                    {
-                                        case "CODIGORESPUESTA":
-
-                                            responseService.ResponseCode = int.Parse(item.Value.ToString());
-
-                                            if (responseService.ResponseCode == 8 || responseService.ResponseCode == 71 || responseService.ResponseCode == 72)
-                                            {
-                                                responseService.AuthorizeCode = 0;
-                                                responseService.Success = false;
-                                                break;
-                                            }
-                                            break;
-                                        case "AUTORIZACION":
-                                            responseService.AuthorizeCode = int.Parse(item.Value.ToString());
-                                            break;
-                                        case "REFERENCIA":
-                                            item.Value = Class_DT.Decrypt(item.Value.ToString(), EncryptedKey);
-                                            break;
-                                    }
-                                }
-
-                                responseService.Fields = x.field;
-                                return responseService;
-                            }
-                        }
-                        else
-                        {
-                            attempts++;
-
-                            if (attempts == 3)
-                            {
-                                var responseService = new ResponseService();
-
-                                responseService.AuthorizeCode = 0;
-                                responseService.Fields = null;
-                                responseService.ResponseCode = 8;
-                                responseService.Success = false;
-                                responseService.XML = task.Result.request;
-
-                                return responseService;
                             }
 
-                            task = Task.Run(() => { return _DT.Send_Request("Ejecuta", credentials, Fields, config); });
+                            responseService.Fields = x.field;
+                            return responseService;
                         }
                     }
-                    catch (AggregateException ex)
-                    {
-                        throw ex.InnerException;
-                    }
+                }
+                catch (AggregateException ex)
+                {
+                    throw ex.InnerException;
                 }
                 return new ResponseService();
             }
@@ -254,6 +173,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
             public ResponseService Check(List<Field> Fields)
             {
                 if (!IsConfigured) throw new Exception();
+
                 return new ResponseService();
             }
 
@@ -268,75 +188,45 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
                 var task = Task.Run(() => { return _DT.Send_Request("Reversa", credentials, Fields, config); });
 
-                int attempts = 1;
-
-                for (int i = 0; i < 3; i++)
+                try
                 {
-                    try
+                    var success = task.Wait(45000);
+                    if (success)
                     {
-                        var success = task.Wait(45000);
-                        if (success)
+                        var x = _DT.GetFieldsFromXml(task.Result.response);
+                        var responseService = new ResponseService();
+
+                        if (x.field.Count > 0)
                         {
-                            var x = _DT.GetFieldsFromXml(task.Result.response);
-                            var responseService = new ResponseService();
-
-                            if (x.field.Count > 0)
+                            responseService.Success = true;
+                            responseService.XML = x.xmlResponse;
+                            foreach (var item in x.field)
                             {
-                                responseService.Success = true;
-                                responseService.XML = task.Result.request;
-                                responseService.AuthorizeCode = 0;
-
-                                foreach (var item in x.field)
+                                switch (item.Name)
                                 {
-                                    switch (item.Name)
-                                    {
-                                        case "CODIGORESPUESTA":
-                                            responseService.ResponseCode = int.Parse(item.Value.ToString());
-                                            if (responseService.ResponseCode == 8 || responseService.ResponseCode == 71 || responseService.ResponseCode == 72)
-                                            {
-                                                responseService.Success = false;
-                                            }
-                                            break;
-                                    }
+                                    case "CODIGORESPUESTA":
+                                        responseService.ResponseCode = int.Parse(item.Value.ToString());
+                                        break;
                                 }
-                                responseService.Fields = x.field;
-                                return responseService;
                             }
+
+                            responseService.Fields = x.field;
+                            return responseService;
                         }
-                        else
-                        {
-                            attempts++;
-
-                            if (attempts == 3)
-                            {
-                                var responseService = new ResponseService();
-
-                                responseService.AuthorizeCode = 0;
-                                responseService.Fields = null;
-                                responseService.ResponseCode = 8;
-                                responseService.Success = false;
-                                responseService.XML = task.Result.request;
-
-                                return responseService;
-                            }
-                            task = Task.Run(() => { return _DT.Send_Request("Reversa", credentials, Fields, config); });
-                        }
-                    }
-                    catch (AggregateException ex)
-                    {
-                        throw ex.InnerException;
                     }
                 }
+                catch (AggregateException ex)
+                {
+                    throw ex.InnerException;
+                }
+
                 return new ResponseService();
             }
         }
     }
-
-    //Diestel
+    
     public class Class_DT
     {
-        public object[] persistData { get; set; }
-
         public (string response, string request) Send_Request(string service, string[] credentials, List<Field> Fields, int[] config = null)
         {
             string sXML = "";
@@ -369,8 +259,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                 }
             }
 
-            //Modificar el Xml
-
             return (soapResult, sXML);
         }
 
@@ -400,19 +288,13 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
             for (int i = Fields.Count - 1; i >= 0; i--)
             {
-                if (Fields[i].Name == "SKU" || Fields[i].Name == "TIPOPAGO" || Fields[i].Name == "TRANSACCION" || Fields[i].Name == "REFERENCIA" || Fields[i].Name == "AUTORIZACION")
+                if (Fields[i].Name == "SKU" || Fields[i].Name == "TIPOPAGO" || Fields[i].Name == "TRANSACCION")
                 {
+
                     switch (Fields[i].Name)
                     {
                         case "SKU":
                             SKU = Fields[i].Value.ToString();
-                            break;
-                        case "REFERENCIA":
-                            if (Reference == "" || Reference == null)
-                            {
-                                Reference = Fields[i].Value.ToString();
-                                Reference = Encrypt(Reference, EncryptedKey);
-                            }
                             break;
                         case "TIPOPAGO":
                             PaymentType = Fields[i].Value.ToString();
@@ -515,7 +397,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                             "<iLongitud>120</iLongitud>" +
                             "<iClase>0</iClase>" +
                             @"<sValor xsi:type=""xsd:string"">" + Reference + "</sValor>" +
-                            "<bEncriptado>true</bEncriptado>" +
+                            "<bEncriptado>false</bEncriptado>" +
                           "</cCampo>";
             }
             else if (service == "Ejecuta")
@@ -607,20 +489,27 @@ namespace FromFrancisToLove.Payments.Backend.Services
                            "<iClase>0</iClase>" +
                            @"<sValor xsi:type=""xsd:string"">" + PaymentType + "</sValor>" +
                            "<bEncriptado>false</bEncriptado>" +
-                         "</cCampo>" +
-                         " <cCampo>" +
-                           "<sCampo>" + "REFERENCIA" + "</sCampo>" +
-                           "<iTipo>AN</iTipo>" +
-                           "<iLongitud>120</iLongitud>" +
-                           "<iClase>0</iClase>" +
-                           @"<sValor xsi:type=""xsd:string"">" + Reference + "</sValor>" +
-                           "<bEncriptado>true</bEncriptado>" +
                          "</cCampo>";
 
                 foreach (var field in Fields)
                 {
                     string type = "0";
-                    type = GetEnumValue(null, field.Type);
+                    if (field.Type.GetType() != typeof(string))
+                    {
+                        type = GetEnumValue(null, field.Type);
+                    }
+
+                    if (field.Encrypt == true)
+                    {
+                        partXml += "<cCampo>" +
+                                "<sCampo>" + field.Name + "</sCampo>" +
+                                "<iTipo>" + type + "</iTipo>" +
+                                "<iLongitud>" + field.Length + "</iLongitud>" +
+                                "<iClase>" + field.Class + "</iClase>" +
+                                @"<sValor xsi:type=""xsd:string"">" + Encrypt(field.Value.ToString(), EncryptedKey) + "</sValor>" +
+                                "<bEncriptado>true</bEncriptado>" +
+                              "</cCampo>";
+                    }
 
                     switch (type)
                     {
@@ -775,7 +664,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
                             "<iLongitud>120</iLongitud>" +
                             "<iClase>0</iClase>" +
                             @"<sValor xsi:type=""xsd:string"">" + Reference + "</sValor>" +
-                            "<bEncriptado>true</bEncriptado>" +
+                            "<bEncriptado>false</bEncriptado>" +
                           "</cCampo>" +
                           "<cCampo>" +
                           "<sCampo>AUTORIZACION</sCampo>" +
@@ -787,9 +676,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                           "</cCampo>";
             }
 
-            //Se capturan los datos de la consulta: SKU, Referencia, Transaccion[NO], Tipo de Pago
-            object[] persistData = { SKU, Decrypt(Reference, EncryptedKey), Transaction, "EFE" };
-            this.persistData = persistData;
 
             string fullXml = "<cArrayCampos>" + partXml + "</cArrayCampos>";
             return fullXml;
@@ -823,18 +709,18 @@ namespace FromFrancisToLove.Payments.Backend.Services
 
             XDocument document = XDocument.Parse(result);
 
-            var listFields = (from s in document.Descendants("Field")
+            var fxml = (from s in document.Descendants("Field")
                         select new Field()
                         {
                             Name = s.Element("Name").Value.ToString(),
-                            Type = int.Parse(GetEnumValue(s.Element("Type").Value.ToString(), -1)),
+                            // Type = GetEnumValue(s.Element("Type").Value),
                             Length = Convert.ToInt32(s.Element("Length").Value.ToString()),
                             Class = Convert.ToInt32(s.Element("Class").Value.ToString()),
                             Value = s.Element("Value").Value,
                             Encrypt = Convert.ToBoolean(s.Element("Encrypt").Value.Equals("true"))
                         }).ToList();
 
-            return (listFields, sXml);
+            return (fxml, sXml);
         }
 
         public string ReplaceFrom(string JsonFrom)
@@ -875,7 +761,6 @@ namespace FromFrancisToLove.Payments.Backend.Services
                         value = "5";
                         break;
                 }
-
             }
 
             if (i != -1)
@@ -944,7 +829,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
             return soapEnvelopeDocument;
         }
 
-        public static string Encrypt(string sInput, string sKey)
+        public string Encrypt(string sInput, string sKey)
         {
             var inputLength = sInput.Length;
             var keyLength = sKey.Length;
@@ -1005,7 +890,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
             return Reverse(suffixValue + encodeString);
         }
 
-        public static string Reverse(string v)
+        private string Reverse(string v)
         {
             char[] chars = v.ToArray();
             string result = "";
@@ -1018,7 +903,7 @@ namespace FromFrancisToLove.Payments.Backend.Services
             return result;
         }
 
-        public static string Decrypt(string sInput, string sKey)
+        public string Decrypt(string sInput, string sKey)
         {
             var inputLength = (sInput.Length / 2) - 1;
             var keyLength = sKey.Length;
