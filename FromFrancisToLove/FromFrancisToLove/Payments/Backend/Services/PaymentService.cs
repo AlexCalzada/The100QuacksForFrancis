@@ -110,10 +110,25 @@ namespace FromFrancisToLove.Payments.Backend.Services
                             {
                                 foreach (var item in x.field)
                                 {
-                                    if (item.Name == "REFERENCIA")
+                                    if (item.Name == "CODIGORESPUESTA")
+                                    {
+                                        int[] errorCodes = { 13, 14, 18, 20, 21, 36 };
+                                        for (int e = 0; e < errorCodes.Length; e++)
+                                        {
+                                            if (errorCodes[e] == int.Parse(item.Value.ToString()))
+                                            {
+                                                throw new ReferenceException(errorCodes[e].ToString());
+                                            }
+                                        }
+                                        throw new ErrorCodeException(item.Value.ToString());
+                                    }
+                                    if (item.Encrypt == true)
                                     {
                                         item.Value = Class_DT.Decrypt(item.Value.ToString(), EncryptedKey);
-                                        referenceExists = x.field.Contains(item);
+                                        if (item.Name == "REFERENCIA")
+                                        {
+                                            referenceExists = x.field.Contains(item);
+                                        }
                                     }
                                     if (item.Name == "SKU")
                                     {
@@ -200,16 +215,32 @@ namespace FromFrancisToLove.Payments.Backend.Services
                                     switch (item.Name)
                                     {
                                         case "CODIGORESPUESTA":
-
-                                            responseService.ResponseCode = int.Parse(item.Value.ToString());
-
-                                            if (responseService.ResponseCode == 8 || responseService.ResponseCode == 71 || responseService.ResponseCode == 72)
+                                            int[] errorCodes = { 13, 14, 18, 20, 21, 36 };
+                                            for (int e = 0; e < errorCodes.Length; e++)
                                             {
-                                                responseService.AuthorizeCode = 0;
-                                                responseService.Success = false;
-                                                break;
+                                                if (errorCodes[e] == int.Parse(item.Value.ToString()))
+                                                {
+                                                    throw new ReferenceException(errorCodes[e].ToString());
+                                                }
                                             }
-                                            break;
+                                            throw new ErrorCodeException(item.Value.ToString());
+                                            //throw new Exception();
+                                            //responseService.ResponseCode = int.Parse(item.Value.ToString());
+
+                                            //try
+                                            //{
+                                            //    if (responseService.ResponseCode == 8 || responseService.ResponseCode == 71 || responseService.ResponseCode == 72)
+                                            //    {
+                                            //        responseService.AuthorizeCode = 0;
+                                            //        responseService.Success = false;
+                                            //        break;
+                                            //    }
+                                            //}
+                                            //catch (Exception ex)
+                                            //{
+                                            //    throw new Exception($"{ex}");
+                                            //}
+                                            //break;
                                         case "AUTORIZACION":
                                             responseService.AuthorizeCode = int.Parse(item.Value.ToString());
                                             break;
@@ -330,6 +361,20 @@ namespace FromFrancisToLove.Payments.Backend.Services
                 return new ResponseService();
             }
         }
+    }
+
+    public class ReferenceException : Exception
+    {
+        public ReferenceException() { }
+        public ReferenceException(string str)
+        : base(String.Format("Error con la referencia: {0}", str)) { }
+    }
+
+    public class ErrorCodeException : Exception
+    {
+        public ErrorCodeException() { }
+        public ErrorCodeException(string str)
+        : base(String.Format("Error de servicio: {0}", str)) { }
     }
 
     //Diestel
